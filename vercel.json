@@ -1,27 +1,8 @@
 {
   "version": 2,
-  "routes": [
-    {
-      "src": "/api/summarize",
-      "methods": ["POST", "OPTIONS"],
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "X-Content-Type-Options": "nosniff",
-        "X-Frame-Options": "DENY",
-        "X-XSS-Protection": "1; mode=block",
-        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-        "Content-Security-Policy": "default-src 'self'; connect-src 'self' https://api.anthropic.com; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; font-src 'self'"
-      }
-    }
-  ],
-  "env": {
-    "CLAUDE_API_KEY": "@claude_api_key"
-  },
+  "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "framework": "vite",
   "headers": [
     {
       "source": "/(.*)",
@@ -48,5 +29,14 @@
         }
       ]
     }
-  ]
+  ],
+  "rewrites": [
+    {
+      "source": "/api/summarize",
+      "destination": "/api/summarize.js"
+    }
+  ],
+  "env": {
+    "CLAUDE_API_KEY": "@claude_api_key"
+  }
 }
