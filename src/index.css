@@ -1,0 +1,166 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sarangsh-orange: #FF5733;
+  --sarangsh-orange-light: #FFA07A;
+}
+
+body {
+  @apply bg-white text-gray-800 antialiased;
+}
+
+/* Gradient backgrounds */
+.bg-gradient-orange {
+  background: linear-gradient(45deg, var(--sarangsh-orange), var(--sarangsh-orange-light));
+}
+
+/* Gradient text */
+.bg-gradient-orange.text-transparent.bg-clip-text {
+  background-image: linear-gradient(45deg, var(--sarangsh-orange), var(--sarangsh-orange-light));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Card styles */
+.summary-card {
+  @apply bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300;
+}
+
+/* Overview paragraph */
+.overview-paragraph {
+  @apply text-gray-600 leading-relaxed mb-6 text-lg;
+  line-height: 1.7;
+}
+
+/* Bullet points container */
+.bullet-points {
+  @apply space-y-3 pl-1;
+}
+
+/* Individual bullet point */
+.bullet-point {
+  @apply flex items-start space-x-3;
+}
+
+.bullet-point-dot {
+  @apply w-2 h-2 rounded-full mt-2 flex-shrink-0;
+  background: linear-gradient(45deg, var(--sarangsh-orange), var(--sarangsh-orange-light));
+}
+
+.bullet-point-text {
+  @apply text-gray-600 leading-relaxed;
+}
+
+/* Section headers */
+.section-title {
+  @apply text-xl font-semibold text-gray-800 mb-4;
+}
+
+.main-title {
+  @apply text-4xl font-bold text-gray-900 mb-6;
+}
+
+/* Header */
+.sticky-header {
+  @apply sticky top-0 z-10 bg-white border-b border-gray-100;
+}
+
+/* Download button */
+.download-btn {
+  @apply inline-flex items-center px-6 py-3 bg-gradient-orange text-white rounded-xl 
+         shadow-sm hover:shadow-md transition-all duration-300;
+}
+
+.download-btn:hover {
+  @apply opacity-90;
+}
+
+/* Back button */
+.back-btn {
+  @apply p-2 hover:bg-gray-50 rounded-full transition-colors;
+}
+
+.back-btn:hover {
+  @apply text-sarangsh-orange;
+}
+
+/* Loading animation */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loading-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  @apply w-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-gray-200 hover:bg-gray-300;
+}
+
+/* Focus styles */
+*:focus {
+  @apply outline-none ring-2 ring-sarangsh-orange/20;
+}
+
+/* Container */
+.content-container {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12;
+}
+
+/* Grid layouts */
+.metrics-grid {
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12;
+}
+
+/* Logo animation */
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.bg-gradient-orange.text-transparent.bg-clip-text {
+  background-size: 200% auto;
+  animation: gradientFlow 3s ease infinite;
+}
+
+/* Section transitions */
+.section-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.section-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 500ms, transform 500ms;
+}
+
+/* Card hover effects */
+.summary-section {
+  @apply transition-all duration-300;
+}
+
+.summary-section:hover {
+  @apply shadow-md;
+  transform: translateY(-2px);
+}
