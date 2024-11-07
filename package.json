@@ -5,11 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "node -e \"if(!process.env.VITE_CLAUDE_API_KEY) { console.error('Error: VITE_CLAUDE_API_KEY is required'); process.exit(1); }\"",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview",
-    "vercel-build": "npm run build"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@react-pdf/renderer": "^3.1.14",
