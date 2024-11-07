@@ -2,6 +2,13 @@
 
 Sarangsh (सारांश) is an AI-powered call summarizer that uses Claude to generate comprehensive summaries of transcripts, with a focus on earnings calls and other business communications.
 
+## ⚠️ Important Security Note
+
+Never commit your actual API keys to the repository. The `.env.example` file contains only placeholder values. Always:
+1. Keep your actual API keys in `.env` (which is gitignored)
+2. Use environment variables in Vercel for deployment
+3. Never share or expose your API keys in public repositories
+
 ## Features
 
 - PDF transcript upload support
@@ -43,7 +50,7 @@ npm install
 ```bash
 cp .env.example .env
 ```
-Then edit `.env` with your Claude API key.
+Then edit `.env` with your actual Claude API key. Never commit this file!
 
 4. Start the development server:
 ```bash
@@ -55,8 +62,14 @@ npm run dev
 Create a `.env` file with the following variable:
 
 ```env
-VITE_CLAUDE_API_KEY=your_claude_api_key_here
+VITE_CLAUDE_API_KEY=your-claude-api-key-here
 ```
+
+⚠️ Remember:
+- Never commit the `.env` file
+- Keep your API keys secret
+- Use environment variables in production
+- Don't expose keys in client-side code
 
 ## Usage
 
@@ -89,6 +102,7 @@ sarangsh/
 4. Set up environment variables:
    - Go to Project Settings > Environment Variables
    - Add `CLAUDE_API_KEY` with your API key
+   - Never expose this key in your code or repository
 5. Deploy!
 
 The application uses Vercel Edge Functions to handle API requests securely. The Edge Function:
@@ -96,6 +110,20 @@ The application uses Vercel Edge Functions to handle API requests securely. The 
 - Handles CORS
 - Protects your API key
 - Provides low-latency responses
+
+## Security Best Practices
+
+1. API Key Protection:
+   - Never commit API keys to the repository
+   - Use environment variables
+   - Keep `.env` in .gitignore
+   - Use secure key management in production
+
+2. Edge Function Security:
+   - API keys stored securely in Vercel
+   - Requests proxied through Edge Function
+   - CORS handled properly
+   - Rate limiting implemented
 
 ## API Routes
 
