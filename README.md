@@ -2,13 +2,6 @@
 
 Sarangsh (सारांश) is an AI-powered call summarizer that uses Claude to generate comprehensive summaries of transcripts, with a focus on earnings calls and other business communications.
 
-## ⚠️ Important Security Note
-
-Never commit your actual API keys to the repository. The `.env.example` file contains only placeholder values. Always:
-1. Keep your actual API keys in `.env` (which is gitignored)
-2. Use environment variables in Vercel for deployment
-3. Never share or expose your API keys in public repositories
-
 ## Features
 
 - PDF transcript upload support
@@ -22,14 +15,13 @@ Never commit your actual API keys to the repository. The `.env.example` file con
 - Clean, modern UI with orange gradient theme
 - PDF download functionality
 - Responsive design
-- Serverless architecture with Edge Functions
+- Local API key management
 
 ## Tech Stack
 
 - React + Vite
 - Tailwind CSS
 - Claude AI API
-- Vercel Edge Functions
 - Framer Motion
 - PDF generation
 
@@ -46,39 +38,31 @@ cd sarangsh
 npm install
 ```
 
-3. Set up environment variables:
-```bash
-cp .env.example .env
-```
-Then edit `.env` with your actual Claude API key. Never commit this file!
-
-4. Start the development server:
+3. Start the development server:
 ```bash
 npm run dev
 ```
 
-## Environment Variables
-
-Create a `.env` file with the following variable:
-
-```env
-VITE_CLAUDE_API_KEY=your-claude-api-key-here
-```
-
-⚠️ Remember:
-- Never commit the `.env` file
-- Keep your API keys secret
-- Use environment variables in production
-- Don't expose keys in client-side code
-
 ## Usage
 
-1. Access the application at `http://localhost:5173`
-2. Upload a PDF transcript or paste text directly
-3. Select the type of call/meeting
-4. Click "Generate Summary"
-5. View the structured summary with key insights
-6. Download the summary as PDF if needed
+1. Visit the application at `http://localhost:5173`
+2. Enter your Claude API key when prompted
+   - The key is stored only in your browser's localStorage
+   - Never sent to any server except Claude API
+   - Can be removed using the "Remove API Key" button
+3. Upload a PDF transcript or paste text directly
+4. Select the type of call/meeting
+5. Click "Generate Summary"
+6. View the structured summary
+7. Download the summary as PDF if needed
+
+## API Key Security
+
+Your Claude API key:
+- Is stored only in your browser's localStorage
+- Never sent to any server except Claude API
+- Can be removed at any time using the "Remove API Key" button
+- Is required to use the summarization feature
 
 ## Project Structure
 
@@ -86,51 +70,15 @@ VITE_CLAUDE_API_KEY=your-claude-api-key-here
 sarangsh/
 ├── src/
 │   ├── components/        # React components
+│   │   ├── ApiKeyInput   # API key management
+│   │   └── Header        # App header with logout
 │   ├── pages/            # Page components
-│   ├── App.jsx           # Main app component
-│   └── main.jsx          # Entry point
-├── api/                  # Vercel Edge Functions
+│   │   ├── Home         # Main upload page
+│   │   └── Summary      # Summary display
+│   └── config.js        # Configuration
 ├── public/              # Static assets
-└── package.json         # Dependencies and scripts
+└── package.json         # Dependencies
 ```
-
-## Deployment to Vercel
-
-1. Fork or clone this repository
-2. Create a new project on Vercel
-3. Connect your repository
-4. Set up environment variables:
-   - Go to Project Settings > Environment Variables
-   - Add `CLAUDE_API_KEY` with your API key
-   - Never expose this key in your code or repository
-5. Deploy!
-
-The application uses Vercel Edge Functions to handle API requests securely. The Edge Function:
-- Proxies requests to Claude API
-- Handles CORS
-- Protects your API key
-- Provides low-latency responses
-
-## Security Best Practices
-
-1. API Key Protection:
-   - Never commit API keys to the repository
-   - Use environment variables
-   - Keep `.env` in .gitignore
-   - Use secure key management in production
-
-2. Edge Function Security:
-   - API keys stored securely in Vercel
-   - Requests proxied through Edge Function
-   - CORS handled properly
-   - Rate limiting implemented
-
-## API Routes
-
-- `/api/summarize` - POST endpoint for generating summaries
-  - Accepts JSON payload with transcript content
-  - Returns structured summary from Claude API
-  - Handles both PDF and text input
 
 ## Contributing
 
