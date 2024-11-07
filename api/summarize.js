@@ -1,5 +1,5 @@
 export const config = {
-  runtime: 'edge',
+  runtime: 'edge'
 };
 
 export default async function handler(request) {
@@ -10,15 +10,27 @@ export default async function handler(request) {
   try {
     const body = await request.json();
     
+    // Access environment variables through request.env in Edge Runtime
+    const apiKey = request.headers.get('x-api-key');
+    
+    if (!apiKey) {
+      throw new Error('API key not provided');
+    }
+    
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.CLAUDE_API_KEY,
+        'x-api-key': apiKey,
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify(body)
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || 'API request failed');
+    }
 
     const data = await response.json();
 
@@ -28,11 +40,16 @@ export default async function handler(request) {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
+        'Access-Control-Expose-Headers': 'x-api-key'
       }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('API Error:', error);
+    return new Response(JSON.stringify({ 
+      error: 'Failed to process request',
+      details: error.message 
+    }), {
       status: 500,
       headers: {
         'Content-Type': 'application/json',

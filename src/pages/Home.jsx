@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiUpload, FiArrowRight, FiX } from 'react-icons/fi';
-import axios from 'axios';
+import { config } from '../config';
 
 const Home = () => {
   const [text, setText] = useState('');
@@ -137,18 +137,31 @@ Please format each section clearly with both paragraph and bullet point componen
 Transcript:
 ${content}`;
 
-      const response = await axios.post('/api/summarize', {
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 4096,
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ]
+      const response = await fetch('/api/summarize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': config.CLAUDE_API_KEY
+        },
+        body: JSON.stringify({
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 4096,
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ]
+        })
       });
 
-      const summary = response.data.content[0].text;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'Failed to generate summary');
+      }
+
+      const data = await response.json();
+      const summary = data.content[0].text;
       localStorage.setItem('summary', summary);
       navigate('/summary');
     } catch (err) {
