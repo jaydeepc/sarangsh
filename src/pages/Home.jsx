@@ -1,10 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiUpload, FiArrowRight, FiX } from 'react-icons/fi';
-import { config } from '../config';
+import PropTypes from 'prop-types';
 
-const Home = () => {
+// CORS Proxy URL
+const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
+const API_URL = 'https://api.anthropic.com/v1/messages';
+
+const Home = ({ apiKey }) => {
   const [text, setText] = useState('');
   const [file, setFile] = useState(null);
   const [callType, setCallType] = useState('earnings');
@@ -12,13 +16,6 @@ const Home = () => {
   const [error, setError] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const navigate = useNavigate();
-
-  // Check configuration on component mount
-  useEffect(() => {
-    if (!config.isValid()) {
-      setError('API key not properly configured. Please check your Vercel environment variables and ensure VITE_CLAUDE_API_KEY is set correctly.');
-    }
-  }, []);
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -82,22 +79,7 @@ const Home = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Clear any previous errors
     setError('');
-
-    // Validate configuration
-    if (!config.isValid()) {
-      setError('API key not properly configured. Please check your Vercel environment variables and ensure VITE_CLAUDE_API_KEY is set correctly.');
-      return;
-    }
-
-    // Validate input
-    if (!file && !text.trim()) {
-      setError('Please provide either text or upload a PDF file');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -105,8 +87,12 @@ const Home = () => {
       
       if (file) {
         content = await readFileAsText(file);
+      } else if (text.trim()) {
+        content = text;
       } else {
-        content = text.trim();
+        setError('Please provide either text or upload a PDF file');
+        setIsLoading(false);
+        return;
       }
 
       const prompt = `Please analyze the following ${callType} transcript and provide a comprehensive summary in the following structured format:
@@ -155,19 +141,17 @@ Please format each section clearly with both paragraph and bullet point componen
 Transcript:
 ${content}`;
 
-      console.log('Making API request with key:', config.CLAUDE_API_KEY ? 'Present' : 'Missing');
-
-      const response = await fetch(config.API_URL, {
+      const response = await fetch(CORS_PROXY + API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': config.CLAUDE_API_KEY,
+          'x-api-key': apiKey,
           'anthropic-version': '2023-06-01',
           'Origin': window.location.origin
         },
         body: JSON.stringify({
-          model: config.MODEL,
-          max_tokens: config.MAX_TOKENS,
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 4096,
           messages: [
             {
               role: 'user',
@@ -179,20 +163,16 @@ ${content}`;
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || `API request failed with status ${response.status}`);
+        throw new Error(errorData.error?.message || 'Failed to generate summary');
       }
 
       const data = await response.json();
-      if (!data.content || !data.content[0] || !data.content[0].text) {
-        throw new Error('Invalid response format from API');
-      }
-
       const summary = data.content[0].text;
       localStorage.setItem('summary', summary);
       navigate('/summary');
     } catch (err) {
       console.error('Error:', err);
-      setError(`Failed to generate summary: ${err.message}. Please check your API key and try again.`);
+      setError(err.message || 'Failed to generate summary');
     } finally {
       setIsLoading(false);
     }
@@ -279,7 +259,7 @@ ${content}`;
 
         <button
           onClick={handleSubmit}
-          disabled={(!text.trim() && !file) || isLoading || !config.isValid()}
+          disabled={(!text.trim() && !file) || isLoading}
           className="w-full py-4 px-6 bg-gradient-orange text-white rounded-lg font-semibold flex items-center justify-center space-x-2 hover:opacity-90 transition-opacity disabled:opacity-50"
         >
           {isLoading ? (
@@ -294,6 +274,10 @@ ${content}`;
       </div>
     </motion.div>
   );
+};
+
+Home.propTypes = {
+  apiKey: PropTypes.string.isRequired
 };
 
 export default Home;
