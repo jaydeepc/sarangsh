@@ -4,8 +4,6 @@ import { motion } from 'framer-motion';
 import { FiUpload, FiArrowRight, FiX } from 'react-icons/fi';
 import PropTypes from 'prop-types';
 
-// CORS Proxy URL
-const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
 const API_URL = 'https://api.anthropic.com/v1/messages';
 
 const Home = ({ apiKey }) => {
@@ -141,13 +139,12 @@ Please format each section clearly with both paragraph and bullet point componen
 Transcript:
 ${content}`;
 
-      const response = await fetch(CORS_PROXY + API_URL, {
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'Origin': window.location.origin
+          'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
           model: 'claude-3-5-sonnet-20241022',

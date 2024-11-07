@@ -17,14 +17,6 @@ Sarangsh (सारांश) is an AI-powered call summarizer that uses Claude 
 - Responsive design
 - Local API key management
 
-## Tech Stack
-
-- React + Vite
-- Tailwind CSS
-- Claude AI API
-- Framer Motion
-- PDF generation
-
 ## Setup
 
 1. Clone the repository:
@@ -38,7 +30,15 @@ cd sarangsh
 npm install
 ```
 
-3. Start the development server:
+3. Install CORS Helper Extension:
+   - Open Chrome
+   - Go to `chrome://extensions/`
+   - Enable "Developer mode"
+   - Click "Load unpacked"
+   - Select the `extension` directory
+   - See `extension/README.md` for details
+
+4. Start the development server:
 ```bash
 npm run dev
 ```
@@ -47,6 +47,7 @@ npm run dev
 
 1. Visit the application at `http://localhost:5173`
 2. Enter your Claude API key when prompted
+   - Get your API key from [Anthropic Console](https://console.anthropic.com/)
    - The key is stored only in your browser's localStorage
    - Never sent to any server except Claude API
    - Can be removed using the "Remove API Key" button
@@ -64,6 +65,22 @@ Your Claude API key:
 - Can be removed at any time using the "Remove API Key" button
 - Is required to use the summarization feature
 
+## CORS Solutions
+
+The application provides multiple ways to handle CORS:
+
+1. Chrome Extension (Recommended):
+   - Use the included CORS Helper extension
+   - Simple installation and setup
+   - No configuration needed
+   - See `extension/README.md` for details
+
+2. Alternative Solutions:
+   - Use a CORS proxy service
+   - Set up a server-side proxy
+   - Use Cloudflare Workers
+   - Configure server-side CORS headers
+
 ## Project Structure
 
 ```
@@ -76,8 +93,12 @@ sarangsh/
 │   │   ├── Home         # Main upload page
 │   │   └── Summary      # Summary display
 │   └── config.js        # Configuration
-├── public/              # Static assets
-└── package.json         # Dependencies
+├── extension/           # CORS Helper extension
+│   ├── manifest.json    # Extension config
+│   ├── background.js    # CORS handling
+│   └── README.md       # Extension docs
+├── public/             # Static assets
+└── package.json        # Dependencies
 ```
 
 ## Contributing
