@@ -4,7 +4,9 @@ import { motion } from 'framer-motion';
 import { FiUpload, FiArrowRight, FiX } from 'react-icons/fi';
 import PropTypes from 'prop-types';
 
-const API_URL = 'https://api.anthropic.com/v1/messages';
+// Use a reliable CORS proxy
+const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+const API_URL = encodeURIComponent('https://api.anthropic.com/v1/messages');
 
 const Home = ({ apiKey }) => {
   const [text, setText] = useState('');
@@ -139,7 +141,7 @@ Please format each section clearly with both paragraph and bullet point componen
 Transcript:
 ${content}`;
 
-      const response = await fetch(API_URL, {
+      const response = await fetch(CORS_PROXY + API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -169,7 +171,7 @@ ${content}`;
       navigate('/summary');
     } catch (err) {
       console.error('Error:', err);
-      setError(err.message || 'Failed to generate summary');
+      setError('Failed to generate summary. Please check your API key and try again.');
     } finally {
       setIsLoading(false);
     }

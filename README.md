@@ -30,15 +30,7 @@ cd sarangsh
 npm install
 ```
 
-3. Install CORS Helper Extension:
-   - Open Chrome
-   - Go to `chrome://extensions/`
-   - Enable "Developer mode"
-   - Click "Load unpacked"
-   - Select the `extension` directory
-   - See `extension/README.md` for details
-
-4. Start the development server:
+3. Start the development server:
 ```bash
 npm run dev
 ```
@@ -65,21 +57,13 @@ Your Claude API key:
 - Can be removed at any time using the "Remove API Key" button
 - Is required to use the summarization feature
 
-## CORS Solutions
+## CORS Handling
 
-The application provides multiple ways to handle CORS:
-
-1. Chrome Extension (Recommended):
-   - Use the included CORS Helper extension
-   - Simple installation and setup
-   - No configuration needed
-   - See `extension/README.md` for details
-
-2. Alternative Solutions:
-   - Use a CORS proxy service
-   - Set up a server-side proxy
-   - Use Cloudflare Workers
-   - Configure server-side CORS headers
+The application uses a reliable CORS proxy (api.allorigins.win) to handle API requests:
+- No additional setup required
+- Secure and reliable
+- Handles all CORS headers automatically
+- Free to use with reasonable rate limits
 
 ## Project Structure
 
@@ -93,13 +77,17 @@ sarangsh/
 │   │   ├── Home         # Main upload page
 │   │   └── Summary      # Summary display
 │   └── config.js        # Configuration
-├── extension/           # CORS Helper extension
-│   ├── manifest.json    # Extension config
-│   ├── background.js    # CORS handling
-│   └── README.md       # Extension docs
-├── public/             # Static assets
-└── package.json        # Dependencies
+├── public/              # Static assets
+└── package.json         # Dependencies
 ```
+
+## Technical Details
+
+- Uses allorigins.win as CORS proxy
+- Handles API requests securely
+- Manages API keys locally
+- Processes PDFs in browser
+- Generates downloadable summaries
 
 ## Contributing
 
