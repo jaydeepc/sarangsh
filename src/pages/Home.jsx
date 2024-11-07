@@ -4,6 +4,148 @@ import { motion } from 'framer-motion';
 import { FiUpload, FiArrowRight, FiX } from 'react-icons/fi';
 import PropTypes from 'prop-types';
 
+const getPromptForCallType = (type, content) => {
+  const basePrompt = `Please provide a comprehensive summary of the following ${type} transcript. Focus on extracting and analyzing all key information, ensuring no important details are missed.
+
+1. Executive Overview:
+   Begin with a thorough 3-4 sentence overview that captures:
+   - Main purpose and context of the discussion
+   - Key participants and their roles
+   - Primary topics covered
+   - Overall tone and significance
+   Then, list key points:
+   - Company/Organization name and specific event details
+   - Date, time, and context of the discussion
+   - Major announcements or decisions made
+   - Immediate implications for stakeholders
+
+2. Key Metrics and Financial Details:
+   Start with a detailed analysis of all numerical data:
+   - Revenue figures and growth rates
+   - Profit margins and cost analysis
+   - Market share and competitive positioning
+   - Year-over-year and quarter-over-quarter comparisons
+   - Customer metrics and user statistics
+   - Investment amounts and funding details
+   - Any other quantitative data mentioned
+   
+3. Operational Highlights:
+   Analyze operational aspects including:
+   - Product launches and updates
+   - Market expansion efforts
+   - Technological advancements
+   - Partnerships and collaborations
+   - Organizational changes
+   - Customer success stories
+   - Operational challenges faced
+
+4. Risk Analysis and Challenges:
+   Identify and analyze:
+   - Current challenges and obstacles
+   - Market risks and threats
+   - Competitive pressures
+   - Regulatory concerns
+   - Economic factors
+   - Internal challenges
+   - Mitigation strategies discussed
+
+5. Strategic Initiatives:
+   Detail all strategic elements:
+   - Short-term objectives (0-12 months)
+   - Long-term goals (1-5 years)
+   - Market positioning strategy
+   - Innovation and R&D plans
+   - Geographic expansion plans
+   - Product roadmap
+   - Investment priorities
+
+6. Financial Outlook:
+   Summarize all forward-looking financial information:
+   - Revenue projections
+   - Profit expectations
+   - Investment plans
+   - Cost optimization strategies
+   - Market growth expectations
+   - Funding requirements
+   - Capital allocation plans
+
+7. Stakeholder Impact:
+   Analyze implications for:
+   - Investors and shareholders
+   - Customers and users
+   - Employees and workforce
+   - Partners and suppliers
+   - Industry ecosystem
+   - Local communities
+   - Regulatory bodies
+
+8. Action Items and Next Steps:
+   List concrete actions:
+   - Immediate priorities (next 30 days)
+   - Short-term actions (1-3 months)
+   - Long-term initiatives (3+ months)
+   - Follow-up meetings planned
+   - Deadlines and milestones
+   - Responsibility assignments
+   - Success metrics
+
+Please ensure:
+- All numerical data is accurately captured
+- Quotes from key speakers are included where significant
+- Technical terms are explained clearly
+- Context is provided for industry-specific information
+- Relationships between different points are clearly shown
+- Both positive and challenging aspects are balanced
+- Future implications are thoroughly analyzed
+
+Format the summary with clear headings, bullet points, and paragraphs for readability. Include any specific terminology used in the transcript while ensuring it's understandable to a general business audience.
+
+Transcript:
+${content}`;
+
+  // Add type-specific prompting
+  switch (type) {
+    case 'earnings':
+      return basePrompt + `
+
+Additional Focus Areas for Earnings Call:
+- Detailed breakdown of revenue streams
+- Segment-wise performance analysis
+- Cash flow and balance sheet highlights
+- Dividend and share buyback information
+- Guidance and forecasts
+- Analyst question themes and management responses
+- Market reaction indicators`;
+
+    case 'interview':
+      return basePrompt + `
+
+Additional Focus Areas for Interview:
+- Personal insights and opinions expressed
+- Experience-based learnings shared
+- Career trajectory discussions
+- Industry wisdom and advice
+- Leadership philosophy
+- Future predictions and trends
+- Personal success stories and challenges`;
+
+    case 'meeting':
+      return basePrompt + `
+
+Additional Focus Areas for Meeting:
+- Decision-making processes discussed
+- Team dynamics and interactions
+- Project updates and timelines
+- Resource allocation discussions
+- Risk assessments and mitigation plans
+- Team responsibilities and assignments
+- Meeting efficiency and effectiveness`;
+
+    default:
+      return basePrompt;
+  }
+};
+
 const Home = ({ apiKey }) => {
   const [text, setText] = useState('');
   const [file, setFile] = useState(null);
@@ -91,51 +233,7 @@ const Home = ({ apiKey }) => {
         return;
       }
 
-      const prompt = `Please analyze the following ${callType} transcript and provide a comprehensive summary in the following structured format:
-
-1. Executive Overview:
-   First, provide a 2-3 sentence overview paragraph that captures the essence of the discussion.
-   Then, list key points:
-   - Include company name and event context
-   - Highlight 2-3 most significant announcements or outcomes
-   - Note any immediate impact or implications
-
-2. Key Highlights:
-   Start with a brief paragraph summarizing the main achievements and metrics.
-   Follow with specific points:
-   - List 3-4 most important metrics or achievements
-   - Include specific numbers, percentages, and growth figures
-   - Highlight year-over-year or quarter-over-quarter comparisons
-   - Note any records or milestones reached
-
-3. Critical Analysis:
-   Begin with a paragraph analyzing overall performance and trends.
-   Then detail specific observations:
-   - Analyze key performance indicators and their implications
-   - Identify major challenges or opportunities
-   - Compare with industry benchmarks or previous periods
-   - Note any significant market factors or external influences
-
-4. Forward-Looking Insights:
-   Provide a paragraph outlining the future direction and strategy.
-   Follow with specific plans:
-   - List concrete goals and targets
-   - Include specific timelines and milestones
-   - Note any strategic initiatives or changes
-   - Highlight potential opportunities and challenges ahead
-
-5. Action Items:
-   Start with a brief paragraph summarizing key next steps.
-   Then list specific actions:
-   - Identify 2-3 immediate action items
-   - Include specific deadlines or timeframes
-   - Note any required follow-ups or dependencies
-   - Highlight priority items
-
-Please format each section clearly with both paragraph and bullet point components. Keep the language professional and concise, focusing on the most impactful information.
-
-Transcript:
-${content}`;
+      const prompt = getPromptForCallType(callType, content);
 
       const response = await fetch('/api/summarize', {
         method: 'POST',
