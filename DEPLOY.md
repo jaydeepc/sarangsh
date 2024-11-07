@@ -30,56 +30,74 @@
    - Verify the summary generation works
    - Test the PDF download functionality
 
-## Troubleshooting
+## Architecture
 
-### Common Issues
-
-1. **Missing Environment Variables**
-   - Double-check VITE_CLAUDE_API_KEY is set in Vercel
-   - Verify the value is correct and properly formatted
-   - Redeploy after updating environment variables
-
-2. **Build Failures**
-   - Check build logs in Vercel
-   - Ensure all dependencies are installed
-   - Verify environment variables are set correctly
-
-3. **API Errors**
-   - Check Claude API key is valid
-   - Verify API endpoints are accessible
-   - Check CORS configuration in vercel.json
+The application now uses a simplified architecture:
+- Frontend directly calls Anthropic's API
+- Environment variables are securely handled by Vercel
+- Security headers are configured in vercel.json
+- No backend/API routes needed
 
 ## Security Notes
 
-1. Never commit API keys to the repository
-2. Always use environment variables for sensitive data
-3. Keep your API keys secure and rotate them regularly
-4. Monitor API usage and set up proper rate limiting
+1. **API Key Security**
+   - API key is only exposed to the client through environment variables
+   - All API calls are made directly to Anthropic
+   - CORS and CSP headers are properly configured
+   - Regular key rotation is recommended
 
-## Updates and Maintenance
+2. **Data Handling**
+   - No data is stored on servers
+   - Transcripts are processed client-side
+   - Summaries are stored in localStorage only
 
-1. **Deploying Updates**
-   - Push changes to your repository
-   - Vercel will automatically deploy updates
+## Troubleshooting
+
+1. **Common Issues**
+   - Verify VITE_CLAUDE_API_KEY is set in Vercel
+   - Check CSP headers if API calls fail
+   - Monitor browser console for errors
+   - Verify API key permissions
+
+2. **Build Failures**
+   - Check Vercel build logs
+   - Verify environment variables
+   - Check package dependencies
+
+## Maintenance
+
+1. **Updates**
+   - Push changes to repository
+   - Vercel auto-deploys updates
+   - Monitor API usage
 
 2. **Monitoring**
-   - Use Vercel's built-in monitoring
-   - Check API usage regularly
-   - Monitor error logs
+   - Use Vercel's built-in analytics
+   - Check error logs regularly
+   - Monitor API rate limits
 
 ## Configuration Files
 
 1. **vercel.json**
-   - Configures build settings
-   - Sets up security headers
-   - Configures API routes
+   ```json
+   {
+     "version": 2,
+     "framework": "vite",
+     "buildCommand": "vite build",
+     "outputDirectory": "dist",
+     "headers": [...]
+   }
+   ```
 
-2. **vite.config.js**
-   - Configures build process
-   - Sets up development server
-   - Handles environment variables
+2. **Environment Variables**
+   ```env
+   VITE_CLAUDE_API_KEY=your-claude-api-key
+   ```
 
-3. **.env.example**
-   - Shows required environment variables
-   - Provides format for API keys
-   - Documents security requirements
+## Support
+
+For issues or questions:
+1. Check Vercel deployment logs
+2. Review browser console errors
+3. Verify API key and permissions
+4. Check Anthropic API status
