@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiUpload, FiArrowRight, FiX } from 'react-icons/fi';
@@ -12,6 +12,13 @@ const Home = () => {
   const [error, setError] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const navigate = useNavigate();
+
+  // Check configuration on component mount
+  useEffect(() => {
+    if (!config.isValid()) {
+      setError('API key not properly configured. Please check your Vercel environment variables and ensure VITE_CLAUDE_API_KEY is set correctly.');
+    }
+  }, []);
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -75,26 +82,31 @@ const Home = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Clear any previous errors
     setError('');
-    setIsLoading(true);
 
-    if (!config.CLAUDE_API_KEY) {
-      setError('API key not configured. Please check your environment variables.');
-      setIsLoading(false);
+    // Validate configuration
+    if (!config.isValid()) {
+      setError('API key not properly configured. Please check your Vercel environment variables and ensure VITE_CLAUDE_API_KEY is set correctly.');
       return;
     }
+
+    // Validate input
+    if (!file && !text.trim()) {
+      setError('Please provide either text or upload a PDF file');
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
       let content = '';
       
       if (file) {
         content = await readFileAsText(file);
-      } else if (text.trim()) {
-        content = text;
       } else {
-        setError('Please provide either text or upload a PDF file');
-        setIsLoading(false);
-        return;
+        content = text.trim();
       }
 
       const prompt = `Please analyze the following ${callType} transcript and provide a comprehensive summary in the following structured format:
@@ -143,6 +155,8 @@ Please format each section clearly with both paragraph and bullet point componen
 Transcript:
 ${content}`;
 
+      console.log('Making API request with key:', config.CLAUDE_API_KEY ? 'Present' : 'Missing');
+
       const response = await fetch(config.API_URL, {
         method: 'POST',
         headers: {
@@ -165,7 +179,7 @@ ${content}`;
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'Failed to generate summary');
+        throw new Error(errorData.error?.message || `API request failed with status ${response.status}`);
       }
 
       const data = await response.json();
@@ -178,7 +192,7 @@ ${content}`;
       navigate('/summary');
     } catch (err) {
       console.error('Error:', err);
-      setError(err.message || 'Failed to generate summary. Please try again.');
+      setError(`Failed to generate summary: ${err.message}. Please check your API key and try again.`);
     } finally {
       setIsLoading(false);
     }
@@ -265,7 +279,7 @@ ${content}`;
 
         <button
           onClick={handleSubmit}
-          disabled={(!text.trim() && !file) || isLoading}
+          disabled={(!text.trim() && !file) || isLoading || !config.isValid()}
           className="w-full py-4 px-6 bg-gradient-orange text-white rounded-lg font-semibold flex items-center justify-center space-x-2 hover:opacity-90 transition-opacity disabled:opacity-50"
         >
           {isLoading ? (
