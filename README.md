@@ -15,7 +15,8 @@ Sarangsh (सारांश) is an AI-powered call summarizer that uses Claude 
 - Clean, modern UI with orange gradient theme
 - PDF download functionality
 - Responsive design
-- Local API key management
+- Secure API key management
+- Edge Function for API calls
 
 ## Setup
 
@@ -41,7 +42,7 @@ npm run dev
 2. Enter your Claude API key when prompted
    - Get your API key from [Anthropic Console](https://console.anthropic.com/)
    - The key is stored only in your browser's localStorage
-   - Never sent to any server except Claude API
+   - Securely passed through Edge Function
    - Can be removed using the "Remove API Key" button
 3. Upload a PDF transcript or paste text directly
 4. Select the type of call/meeting
@@ -49,21 +50,29 @@ npm run dev
 6. View the structured summary
 7. Download the summary as PDF if needed
 
-## API Key Security
+## Security Features
 
-Your Claude API key:
-- Is stored only in your browser's localStorage
-- Never sent to any server except Claude API
-- Can be removed at any time using the "Remove API Key" button
-- Is required to use the summarization feature
+1. API Key Protection:
+   - Stored only in browser localStorage
+   - Never exposed in client-side code
+   - Passed securely through Edge Function
+   - Can be removed at any time
 
-## CORS Handling
+2. Edge Function Security:
+   - Handles API calls server-side
+   - Validates requests
+   - Manages CORS securely
+   - Protects API credentials
 
-The application uses a reliable CORS proxy (api.allorigins.win) to handle API requests:
-- No additional setup required
-- Secure and reliable
-- Handles all CORS headers automatically
-- Free to use with reasonable rate limits
+## Architecture
+
+The application uses a secure architecture:
+- Frontend: React + Vite
+- API Handling: Edge Function
+- PDF Processing: Client-side
+- State Management: React hooks
+- Styling: Tailwind CSS
+- Animations: Framer Motion
 
 ## Project Structure
 
@@ -77,17 +86,19 @@ sarangsh/
 │   │   ├── Home         # Main upload page
 │   │   └── Summary      # Summary display
 │   └── config.js        # Configuration
-├── public/              # Static assets
-└── package.json         # Dependencies
+├── api/                 # Edge Functions
+│   └── summarize.js     # API handler
+├── public/             # Static assets
+└── package.json        # Dependencies
 ```
 
 ## Technical Details
 
-- Uses allorigins.win as CORS proxy
-- Handles API requests securely
-- Manages API keys locally
+- Uses Edge Function for API calls
 - Processes PDFs in browser
+- Manages state with React hooks
 - Generates downloadable summaries
+- Handles CORS securely
 
 ## Contributing
 

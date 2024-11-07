@@ -1,9 +1,6 @@
 // API configuration
-const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
-const API_URL = encodeURIComponent('https://api.anthropic.com/v1/messages');
-
 export const config = {
-  API_ENDPOINT: CORS_PROXY + API_URL,
+  API_ENDPOINT: '/api/summarize',
   MODEL: 'claude-3-5-sonnet-20241022',
   MAX_TOKENS: 4096,
   API_VERSION: '2023-06-01',

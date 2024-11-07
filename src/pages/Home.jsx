@@ -4,10 +4,6 @@ import { motion } from 'framer-motion';
 import { FiUpload, FiArrowRight, FiX } from 'react-icons/fi';
 import PropTypes from 'prop-types';
 
-// Use a reliable CORS proxy
-const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
-const API_URL = encodeURIComponent('https://api.anthropic.com/v1/messages');
-
 const Home = ({ apiKey }) => {
   const [text, setText] = useState('');
   const [file, setFile] = useState(null);
@@ -141,22 +137,14 @@ Please format each section clearly with both paragraph and bullet point componen
 Transcript:
 ${content}`;
 
-      const response = await fetch(CORS_PROXY + API_URL, {
+      const response = await fetch('/api/summarize', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 4096,
-          messages: [
-            {
-              role: 'user',
-              content: prompt
-            }
-          ]
+          apiKey,
+          prompt
         })
       });
 
@@ -171,7 +159,7 @@ ${content}`;
       navigate('/summary');
     } catch (err) {
       console.error('Error:', err);
-      setError('Failed to generate summary. Please check your API key and try again.');
+      setError(err.message || 'Failed to generate summary');
     } finally {
       setIsLoading(false);
     }
