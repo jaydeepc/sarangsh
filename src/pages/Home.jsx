@@ -78,6 +78,12 @@ const Home = () => {
     setError('');
     setIsLoading(true);
 
+    if (!config.CLAUDE_API_KEY) {
+      setError('API key not configured. Please check your environment variables.');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       let content = '';
       
@@ -137,16 +143,17 @@ Please format each section clearly with both paragraph and bullet point componen
 Transcript:
 ${content}`;
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch(config.API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': config.CLAUDE_API_KEY,
-          'anthropic-version': '2023-06-01'
+          'anthropic-version': '2023-06-01',
+          'Origin': window.location.origin
         },
         body: JSON.stringify({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 4096,
+          model: config.MODEL,
+          max_tokens: config.MAX_TOKENS,
           messages: [
             {
               role: 'user',
@@ -162,12 +169,16 @@ ${content}`;
       }
 
       const data = await response.json();
+      if (!data.content || !data.content[0] || !data.content[0].text) {
+        throw new Error('Invalid response format from API');
+      }
+
       const summary = data.content[0].text;
       localStorage.setItem('summary', summary);
       navigate('/summary');
     } catch (err) {
       console.error('Error:', err);
-      setError(err.message || 'Failed to generate summary');
+      setError(err.message || 'Failed to generate summary. Please try again.');
     } finally {
       setIsLoading(false);
     }
