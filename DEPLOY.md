@@ -6,13 +6,7 @@
 
 ## Steps to Deploy
 
-1. **Fork or Clone the Repository**
-   ```bash
-   git clone https://github.com/yourusername/sarangsh.git
-   cd sarangsh
-   ```
-
-2. **Set Up Environment Variables in Vercel**
+1. **Set Up Environment Variables in Vercel**
    - Go to your project in Vercel Dashboard
    - Navigate to Settings > Environment Variables
    - Add the following variable:
@@ -22,15 +16,15 @@
      ```
    - Make sure to add this to Production, Preview, and Development environments
 
-3. **Deploy to Vercel**
+2. **Deploy to Vercel**
    - Connect your GitHub repository to Vercel
    - Vercel will automatically detect it's a Vite project
-   - The build settings should be automatically configured:
-     - Build Command: `npm run build`
+   - The build settings are configured in vercel.json:
+     - Build Command: `vite build`
      - Output Directory: `dist`
-     - Install Command: `npm install`
+     - Framework Preset: Vite
 
-4. **Verify Deployment**
+3. **Verify Deployment**
    - Check the deployment logs for any errors
    - Test the application by uploading a transcript
    - Verify the summary generation works
@@ -41,19 +35,19 @@
 ### Common Issues
 
 1. **Missing Environment Variables**
-   - Ensure VITE_CLAUDE_API_KEY is set in Vercel
-   - Check the value is correct
+   - Double-check VITE_CLAUDE_API_KEY is set in Vercel
+   - Verify the value is correct and properly formatted
    - Redeploy after updating environment variables
 
 2. **Build Failures**
    - Check build logs in Vercel
    - Ensure all dependencies are installed
-   - Verify environment variables are set
+   - Verify environment variables are set correctly
 
 3. **API Errors**
    - Check Claude API key is valid
    - Verify API endpoints are accessible
-   - Check CORS configuration
+   - Check CORS configuration in vercel.json
 
 ## Security Notes
 
@@ -64,16 +58,28 @@
 
 ## Updates and Maintenance
 
-1. **Updating Dependencies**
-   ```bash
-   npm update
-   ```
-
-2. **Deploying Updates**
+1. **Deploying Updates**
    - Push changes to your repository
    - Vercel will automatically deploy updates
 
-3. **Monitoring**
+2. **Monitoring**
    - Use Vercel's built-in monitoring
    - Check API usage regularly
    - Monitor error logs
+
+## Configuration Files
+
+1. **vercel.json**
+   - Configures build settings
+   - Sets up security headers
+   - Configures API routes
+
+2. **vite.config.js**
+   - Configures build process
+   - Sets up development server
+   - Handles environment variables
+
+3. **.env.example**
+   - Shows required environment variables
+   - Provides format for API keys
+   - Documents security requirements

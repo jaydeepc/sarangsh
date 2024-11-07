@@ -35,8 +35,5 @@
       "source": "/api/summarize",
       "destination": "/api/summarize.js"
     }
-  ],
-  "buildEnv": {
-    "VITE_CLAUDE_API_KEY": "@vite_claude_api_key"
-  }
+  ]
 }
