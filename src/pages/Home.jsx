@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiUpload, FiArrowRight, FiX } from 'react-icons/fi';
-import { config } from '../config';
+import axios from 'axios';
 
 const Home = () => {
   const [text, setText] = useState('');
@@ -13,7 +13,7 @@ const Home = () => {
   const [dragActive, setDragActive] = useState(false);
   const navigate = useNavigate();
 
-  const handleDrag = useCallback((e) => {
+  const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") {
@@ -21,16 +21,16 @@ const Home = () => {
     } else if (e.type === "dragleave") {
       setDragActive(false);
     }
-  }, []);
+  };
 
-  const handleDrop = useCallback((e) => {
+  const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
 
     const droppedFile = e.dataTransfer.files[0];
     handleFileSelection(droppedFile);
-  }, []);
+  };
 
   const handleFileSelection = (selectedFile) => {
     if (selectedFile) {
@@ -64,66 +64,92 @@ const Home = () => {
     setError('');
   };
 
+  const readFileAsText = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = (e) => reject(e);
+      reader.readAsText(file);
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     try {
-      let response;
+      let content = '';
       
       if (file) {
-        // Handle PDF upload
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('callType', callType);
-
-        console.log('Uploading PDF file:', file.name);
-        response = await fetch(`${config.API_BASE_URL}/api/summarize/pdf`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${config.CLAUDE_API_KEY}`,
-          },
-          body: formData,
-        });
+        content = await readFileAsText(file);
       } else if (text.trim()) {
-        // Handle text input
-        console.log('Sending text input');
-        response = await fetch(`${config.API_BASE_URL}/api/summarize/text`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${config.CLAUDE_API_KEY}`,
-          },
-          body: JSON.stringify({
-            prompt: `Please provide a comprehensive summary of the following ${callType} transcript. 
-            Focus on key points, important decisions, and main takeaways. 
-            If it's an earnings call, include financial highlights, future outlook, and key strategic initiatives.
-            Format the summary in a clear, structured way with sections and bullet points where appropriate.
-            
-            Transcript:
-            ${text}`
-          }),
-        });
+        content = text;
       } else {
         setError('Please provide either text or upload a PDF file');
         setIsLoading(false);
         return;
       }
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate summary');
-      }
+      const prompt = `Please analyze the following ${callType} transcript and provide a comprehensive summary in the following structured format:
 
-      const data = await response.json();
-      console.log('Response:', data);
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
+1. Executive Overview:
+   First, provide a 2-3 sentence overview paragraph that captures the essence of the discussion.
+   Then, list key points:
+   - Include company name and event context
+   - Highlight 2-3 most significant announcements or outcomes
+   - Note any immediate impact or implications
 
-      localStorage.setItem('summary', data.summary);
+2. Key Highlights:
+   Start with a brief paragraph summarizing the main achievements and metrics.
+   Follow with specific points:
+   - List 3-4 most important metrics or achievements
+   - Include specific numbers, percentages, and growth figures
+   - Highlight year-over-year or quarter-over-quarter comparisons
+   - Note any records or milestones reached
+
+3. Critical Analysis:
+   Begin with a paragraph analyzing overall performance and trends.
+   Then detail specific observations:
+   - Analyze key performance indicators and their implications
+   - Identify major challenges or opportunities
+   - Compare with industry benchmarks or previous periods
+   - Note any significant market factors or external influences
+
+4. Forward-Looking Insights:
+   Provide a paragraph outlining the future direction and strategy.
+   Follow with specific plans:
+   - List concrete goals and targets
+   - Include specific timelines and milestones
+   - Note any strategic initiatives or changes
+   - Highlight potential opportunities and challenges ahead
+
+5. Action Items:
+   Start with a brief paragraph summarizing key next steps.
+   Then list specific actions:
+   - Identify 2-3 immediate action items
+   - Include specific deadlines or timeframes
+   - Note any required follow-ups or dependencies
+   - Highlight priority items
+
+Please format each section clearly with both paragraph and bullet point components. Keep the language professional and concise, focusing on the most impactful information.
+
+Transcript:
+${content}`;
+
+      const response = await axios.post('/api/summarize', {
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 4096,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ]
+      });
+
+      const summary = response.data.content[0].text;
+      localStorage.setItem('summary', summary);
       navigate('/summary');
     } catch (err) {
       console.error('Error:', err);
@@ -215,7 +241,7 @@ const Home = () => {
         <button
           onClick={handleSubmit}
           disabled={(!text.trim() && !file) || isLoading}
-          className="w-full py-4 px-6 bg-gradient-to-r from-sarangsh-orange to-orange-400 text-white rounded-lg font-semibold flex items-center justify-center space-x-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+          className="w-full py-4 px-6 bg-gradient-orange text-white rounded-lg font-semibold flex items-center justify-center space-x-2 hover:opacity-90 transition-opacity disabled:opacity-50"
         >
           {isLoading ? (
             <span>Processing...</span>

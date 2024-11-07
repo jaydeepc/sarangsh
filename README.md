@@ -15,15 +15,16 @@ Sarangsh (सारांश) is an AI-powered call summarizer that uses Claude 
 - Clean, modern UI with orange gradient theme
 - PDF download functionality
 - Responsive design
+- Serverless architecture with Edge Functions
 
 ## Tech Stack
 
 - React + Vite
 - Tailwind CSS
-- Express.js
 - Claude AI API
+- Vercel Edge Functions
 - Framer Motion
-- PDF parsing and generation
+- PDF generation
 
 ## Setup
 
@@ -42,27 +43,19 @@ npm install
 ```bash
 cp .env.example .env
 ```
-Then edit `.env` with your actual values.
+Then edit `.env` with your Claude API key.
 
 4. Start the development server:
 ```bash
-# Start the frontend
 npm run dev
-
-# In a separate terminal, start the backend
-node server.js
 ```
 
 ## Environment Variables
 
-Create a `.env` file with the following variables:
+Create a `.env` file with the following variable:
 
 ```env
 VITE_CLAUDE_API_KEY=your_claude_api_key_here
-PORT=4000
-NODE_ENV=development
-API_BASE_URL=http://localhost:4000
-CORS_ORIGIN=http://localhost:5173
 ```
 
 ## Usage
@@ -83,10 +76,33 @@ sarangsh/
 │   ├── pages/            # Page components
 │   ├── App.jsx           # Main app component
 │   └── main.jsx          # Entry point
-├── server.js             # Express backend
+├── api/                  # Vercel Edge Functions
 ├── public/              # Static assets
 └── package.json         # Dependencies and scripts
 ```
+
+## Deployment to Vercel
+
+1. Fork or clone this repository
+2. Create a new project on Vercel
+3. Connect your repository
+4. Set up environment variables:
+   - Go to Project Settings > Environment Variables
+   - Add `CLAUDE_API_KEY` with your API key
+5. Deploy!
+
+The application uses Vercel Edge Functions to handle API requests securely. The Edge Function:
+- Proxies requests to Claude API
+- Handles CORS
+- Protects your API key
+- Provides low-latency responses
+
+## API Routes
+
+- `/api/summarize` - POST endpoint for generating summaries
+  - Accepts JSON payload with transcript content
+  - Returns structured summary from Claude API
+  - Handles both PDF and text input
 
 ## Contributing
 
