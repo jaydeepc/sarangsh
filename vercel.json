@@ -3,18 +3,9 @@
   "framework": "vite",
   "buildCommand": "vite build",
   "outputDirectory": "dist",
-  "routes": [
-    {
-      "src": "/api/summarize",
-      "dest": "/api/summarize.js"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+  "rewrites": [
+    { "source": "/api/summarize", "destination": "/api/summarize.js" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {

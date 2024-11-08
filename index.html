@@ -2,12 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Sarangsh - AI-Powered Call Summarizer" />
-    <title>सारांश (Sarangsh) - AI Call Summarizer</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="description" content="Sarangsh - AI-Powered Call Summarizer using Claude" />
+    <meta name="theme-color" content="#FF6138" />
+    <title>सारांश - AI Call Summarizer</title>
+    <base href="/" />
+    <script>
+      // Handle client-side routing in production
+      (function() {
+        const { pathname } = window.location;
+        if (pathname !== '/' && !pathname.includes('.')) {
+          const url = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+          window.history.replaceState(null, null, url);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
