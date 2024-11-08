@@ -6,7 +6,8 @@ import PropTypes from 'prop-types';
 import { config } from '../config';
 import * as pdfjsLib from 'pdfjs-dist';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Configure worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 const Home = ({ apiKey }) => {
   const [text, setText] = useState('');
@@ -130,14 +131,23 @@ ${content}`
         })
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        const responseText = await response.text();
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Response parsing error:', parseError);
+        throw new Error('Invalid response from server');
+      }
 
       if (!response.ok) {
+        console.error('API error response:', data);
         throw new Error(data.error?.details || data.error?.message || 'Failed to generate summary');
       }
       
       if (!data.content?.[0]?.text) {
-        throw new Error('Invalid response from API');
+        console.error('Invalid API response structure:', data);
+        throw new Error('Invalid response format from API');
       }
 
       localStorage.setItem('summary', data.content[0].text);

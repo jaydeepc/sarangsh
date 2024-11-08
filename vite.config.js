@@ -40,6 +40,7 @@ export default defineConfig({
 
                 const body = JSON.parse(bodyText);
                 const apiKey = req.headers['x-api-key'];
+                const anthropicVersion = req.headers['anthropic-version'];
 
                 if (!apiKey) {
                   res.writeHead(400, { 
@@ -52,54 +53,46 @@ export default defineConfig({
 
                 try {
                   console.log('Making request to Anthropic API...');
-                  console.log('Request headers:', {
-                    'Content-Type': 'application/json',
-                    'anthropic-version': '2023-06-01'
-                  });
+                  console.log('Request body:', JSON.stringify(body, null, 2));
 
                   const response = await fetch('https://api.anthropic.com/v1/messages', {
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json',
-                      'X-Api-Key': apiKey,
-                      'anthropic-version': '2023-06-01'
+                      'x-api-key': apiKey,
+                      'anthropic-version': anthropicVersion || '2023-06-01'
                     },
                     body: JSON.stringify({
                       model: body.model,
                       max_tokens: body.max_tokens,
                       messages: body.messages
                     }),
-                    agent,
-                    timeout: 60000 // 60 second timeout
+                    agent
                   });
 
                   console.log('Anthropic API response status:', response.status);
                   const data = await response.json();
-                  
+                  console.log('Anthropic API response:', JSON.stringify(data, null, 2));
+
                   if (!response.ok) {
                     console.error('API error response:', data);
                     throw new Error(data.error?.message || 'API request failed');
                   }
 
-                  console.log('Anthropic API response:', JSON.stringify(data, null, 2));
-
-                  res.writeHead(response.status, { 
+                  res.writeHead(200, { 
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
                   });
                   res.end(JSON.stringify(data));
                 } catch (error) {
                   console.error('API Error:', error);
-                  const status = error.status || 500;
-                  const message = error.message || 'Failed to process request';
-                  
-                  res.writeHead(status, { 
+                  res.writeHead(500, { 
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
                   });
                   res.end(JSON.stringify({ 
                     error: 'API request failed',
-                    details: message
+                    details: error.message 
                   }));
                 }
               } catch (error) {
@@ -134,13 +127,13 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          pdfjsLib: ['pdfjs-dist/legacy/build/pdf']
+          pdfjsLib: ['pdfjs-dist']
         }
       }
     }
   },
   optimizeDeps: {
-    include: ['pdfjs-dist/legacy/build/pdf']
+    include: ['pdfjs-dist']
   },
   server: {
     port: 5173,
