@@ -8,10 +8,16 @@ export default defineConfig({
     sourcemap: true,
     minify: true,
     rollupOptions: {
-      external: ['jspdf'],
       output: {
-        globals: {
-          jspdf: 'jsPDF'
+        manualChunks: {
+          'jspdf': ['jspdf'],
+          'vendor': [
+            'react',
+            'react-dom',
+            'react-router-dom',
+            'framer-motion',
+            'react-icons'
+          ]
         }
       }
     }
@@ -20,6 +26,11 @@ export default defineConfig({
     include: ['jspdf']
   },
   server: {
+    port: 5173,
+    strictPort: true,
+    host: true
+  },
+  preview: {
     port: 5173,
     strictPort: true,
     host: true
