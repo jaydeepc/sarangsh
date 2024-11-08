@@ -57,8 +57,8 @@ export default async function handler(request) {
       })
     });
 
-    const responseText = await response.text();
     console.log('Anthropic API response status:', response.status);
+    const responseText = await response.text();
     console.log('Anthropic API response:', responseText);
 
     let data;
