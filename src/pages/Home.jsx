@@ -75,20 +75,37 @@ const Home = ({ apiKey }) => {
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       let fullText = '';
       
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items
-          .map(item => item.str)
-          .join(' ')
-          .replace(/\s+/g, ' ');
-        fullText += pageText + '\n\n';
+      // Show loading message for large PDFs
+      if (pdf.numPages > 10) {
+        setError('Processing large PDF, please wait...');
       }
       
-      return fullText.trim();
-    } catch (error) {
-      console.error('Error reading PDF:', error);
-      throw new Error('Failed to read PDF file. Please try again.');
+      for (let i = 1; i <= pdf.numPages; i++) {
+        try {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items
+            .map(item => item.str)
+            .join(' ')
+            .replace(/\s+/g, ' ');
+          fullText += pageText + '\n\n';
+        } catch (pageError) {
+          console.error(`Error reading page ${i}:`, pageError);
+          continue; // Skip problematic pages
+        }
+      }
+      
+      setError(''); // Clear any loading messages
+      const cleanText = fullText.trim();
+      
+      if (!cleanText) {
+        throw new Error('No readable text found in PDF. Please try copying and pasting the text directly.');
+      }
+      
+      return cleanText;
+    } catch (err) {
+      console.error('Error reading PDF:', err);
+      throw new Error('Failed to read PDF file. Please try copying and pasting the text directly.');
     }
   };
 
@@ -105,14 +122,7 @@ const Home = ({ apiKey }) => {
       let content = '';
       
       if (file) {
-        try {
-          content = await readPdfFile(file);
-          if (!content.trim()) {
-            throw new Error('Could not extract text from PDF. Please try copying and pasting the text directly.');
-          }
-        } catch (error) {
-          throw new Error('Failed to read PDF file. Please try copying and pasting the text directly.');
-        }
+        content = await readPdfFile(file);
       } else {
         content = text.trim();
       }
@@ -177,8 +187,12 @@ ${content}`
             animate={{ opacity: 1, y: 0 }}
             className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg"
           >
-            <div className="text-red-600 font-medium">Error</div>
-            <div className="text-red-500">{error}</div>
+            <div className="text-red-600 font-medium">
+              {error.includes('Processing') ? 'Status' : 'Error'}
+            </div>
+            <div className={error.includes('Processing') ? 'text-gray-600' : 'text-red-500'}>
+              {error}
+            </div>
           </motion.div>
         )}
 
