@@ -123,7 +123,19 @@ const Home = ({ apiKey }) => {
           messages: [
             {
               role: 'user',
-              content: `Analyze this ${callType} transcript and provide a detailed summary. Extract ALL important information including numbers, quotes, and specific details:
+              content: `Analyze this ${callType} transcript and provide a detailed summary. For each major section:
+
+1. Start with a brief 1-2 sentence overview that captures the key message
+2. Then provide detailed bullet points with specific information, numbers, and quotes
+
+Make sure to organize the information into clear sections like:
+- Financial Performance
+- Business Highlights
+- Strategic Updates
+- Market Outlook
+- Key Metrics
+
+Here's the transcript:
 
 ${content}`
             }
