@@ -50,51 +50,100 @@ export default async function handler(request) {
       body: JSON.stringify({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 4096,
-        temperature: 0.3,
+        temperature: 0.2,
         messages: [
           {
             role: 'user',
-            content: `You are a precise and thorough analyst. Your task is to analyze the following transcript and provide a detailed summary in a clear, structured format. Focus on extracting and organizing ALL important information.
-
-Please ensure your response follows this EXACT structure:
+            content: `Analyze this transcript and create a detailed summary with the following EXACT structure. Include ALL numbers, quotes, and specific details mentioned:
 
 1. EXECUTIVE OVERVIEW
-   - Event Details (date, time, type, duration)
-   - Key Participants (names and titles)
-   - Main Announcements (3-4 most significant points)
+   A. Event Information
+      • Event type and purpose
+      • Date and time
+      • Duration
+      • Platform/venue
+   
+   B. Participants
+      • List all speakers with full names and titles
+      • Key attendees mentioned
+      • Host/moderator details
 
-2. KEY HIGHLIGHTS
-   - Financial Metrics (all numbers with comparisons)
-   - Operational Updates (key changes and achievements)
-   - Strategic Decisions (major choices and plans)
+   C. Key Announcements
+      • Major decisions announced
+      • Significant changes
+      • Important updates
+      • Critical numbers shared
 
-3. CRITICAL ANALYSIS
-   - Performance Assessment
-   - Market Position
-   - Competitive Analysis
-   - Risk Factors
+2. DETAILED METRICS
+   A. Financial Data
+      • Revenue figures (with % changes)
+      • Profit/margins
+      • Growth rates
+      • Market share
+      • Stock performance
 
-4. FORWARD-LOOKING INSIGHTS
-   - Growth Plans
-   - Strategic Initiatives
-   - Market Expansion
-   - Product Roadmap
+   B. Operational Numbers
+      • Customer metrics
+      • Production/efficiency data
+      • Market penetration
+      • Geographic presence
 
-5. ACTION ITEMS
-   - Immediate Next Steps
-   - Follow-up Tasks
-   - Timeline and Deadlines
-   - Responsibility Assignments
+3. IMPORTANT QUOTES
+   Format: "Quote text" - Speaker Name, Title
+   Include 4-5 most significant quotes about:
+   • Strategic decisions
+   • Financial results
+   • Future plans
+   • Market position
 
-IMPORTANT:
-- Include ALL numerical data mentioned
-- Quote speakers directly for important statements
-- Maintain consistent formatting
-- Provide context for industry terms
-- Don't skip any sections
-- Use bullet points for clarity
+4. STRATEGIC UPDATES
+   A. Current Initiatives
+      • Ongoing projects
+      • Recent launches
+      • Market expansion
+      • Partnerships
 
-Here's the transcript to analyze:
+   B. Future Plans
+      • Upcoming launches
+      • Growth targets
+      • Investment plans
+      • Market strategies
+
+5. ANALYSIS
+   A. Performance Review
+      • Strengths highlighted
+      • Challenges faced
+      • Market position
+      • Competitive analysis
+
+   B. Risk Factors
+      • Market challenges
+      • Competitive threats
+      • Operational risks
+      • Regulatory concerns
+
+6. ACTION ITEMS
+   A. Short-term (Next 90 Days)
+      • Immediate priorities
+      • Specific deadlines
+      • Assigned responsibilities
+      • Expected outcomes
+
+   B. Long-term
+      • Strategic goals
+      • Development plans
+      • Growth targets
+      • Vision alignment
+
+IMPORTANT GUIDELINES:
+1. Use bullet points consistently
+2. Include ALL numerical data
+3. Quote speakers directly for important statements
+4. Maintain exact section structure
+5. Don't skip any section
+6. Provide context for industry terms
+
+Transcript to analyze:
 
 ${prompt}`
           }
@@ -119,6 +168,9 @@ ${prompt}`
     
     // Ensure proper quote formatting
     summary = summary.replace(/[""]([^""]+)[""]\s*-\s*([^"\n]+)/g, '"$1" - $2');
+    
+    // Add section breaks
+    summary = summary.replace(/(\d+\.\s+[A-Z\s]+)\n/g, '\n$1\n');
 
     return new Response(JSON.stringify({
       content: [{ text: summary }]
