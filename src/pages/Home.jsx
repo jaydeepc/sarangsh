@@ -5,141 +5,219 @@ import { FiUpload, FiArrowRight, FiX } from 'react-icons/fi';
 import PropTypes from 'prop-types';
 
 const getPromptForCallType = (type, content) => {
-  const basePrompt = `Please provide a comprehensive summary of the following ${type} transcript. Focus on extracting and analyzing all key information, ensuring no important details are missed.
+  const basePrompt = `You are a highly skilled analyst tasked with creating a detailed, structured summary of the following ${type} transcript. Extract and organize ALL important information, ensuring no key details are missed. Present the information in the following consistent format:
 
-1. Executive Overview:
-   Begin with a thorough 3-4 sentence overview that captures:
-   - Main purpose and context of the discussion
-   - Key participants and their roles
-   - Primary topics covered
-   - Overall tone and significance
-   Then, list key points:
-   - Company/Organization name and specific event details
-   - Date, time, and context of the discussion
-   - Major announcements or decisions made
-   - Immediate implications for stakeholders
+1. EXECUTIVE OVERVIEW
+   A. Event Details:
+      • Full event name and type
+      • Date and time
+      • Host organization/company
+      • Platform/venue used
+      • Duration of event
 
-2. Key Metrics and Financial Details:
-   Start with a detailed analysis of all numerical data:
-   - Revenue figures and growth rates
-   - Profit margins and cost analysis
-   - Market share and competitive positioning
-   - Year-over-year and quarter-over-quarter comparisons
-   - Customer metrics and user statistics
-   - Investment amounts and funding details
-   - Any other quantitative data mentioned
-   
-3. Operational Highlights:
-   Analyze operational aspects including:
-   - Product launches and updates
-   - Market expansion efforts
-   - Technological advancements
-   - Partnerships and collaborations
-   - Organizational changes
-   - Customer success stories
-   - Operational challenges faced
+   B. Key Participants:
+      • List all speakers with their full names and titles
+      • Moderator/host details
+      • Notable attendees mentioned
 
-4. Risk Analysis and Challenges:
-   Identify and analyze:
-   - Current challenges and obstacles
-   - Market risks and threats
-   - Competitive pressures
-   - Regulatory concerns
-   - Economic factors
-   - Internal challenges
-   - Mitigation strategies discussed
+   C. Main Highlights (3-4 bullet points):
+      • Most significant announcements
+      • Key decisions made
+      • Major changes announced
+      • Critical updates shared
 
-5. Strategic Initiatives:
-   Detail all strategic elements:
-   - Short-term objectives (0-12 months)
-   - Long-term goals (1-5 years)
-   - Market positioning strategy
-   - Innovation and R&D plans
-   - Geographic expansion plans
-   - Product roadmap
-   - Investment priorities
+2. DETAILED METRICS AND NUMBERS
+   A. Financial Figures:
+      • Revenue numbers (with % changes)
+      • Profit/loss figures
+      • Margins and ratios
+      • Market share data
+      • Stock/share related figures
 
-6. Financial Outlook:
-   Summarize all forward-looking financial information:
-   - Revenue projections
-   - Profit expectations
-   - Investment plans
-   - Cost optimization strategies
-   - Market growth expectations
-   - Funding requirements
-   - Capital allocation plans
+   B. Operational Metrics:
+      • Customer/user numbers
+      • Growth statistics
+      • Market penetration data
+      • Efficiency metrics
+      • Performance indicators
 
-7. Stakeholder Impact:
-   Analyze implications for:
-   - Investors and shareholders
-   - Customers and users
-   - Employees and workforce
-   - Partners and suppliers
-   - Industry ecosystem
-   - Local communities
-   - Regulatory bodies
+   C. Industry Benchmarks:
+      • Competitive comparisons
+      • Market position data
+      • Industry-specific metrics
 
-8. Action Items and Next Steps:
-   List concrete actions:
-   - Immediate priorities (next 30 days)
-   - Short-term actions (1-3 months)
-   - Long-term initiatives (3+ months)
-   - Follow-up meetings planned
-   - Deadlines and milestones
-   - Responsibility assignments
-   - Success metrics
+3. KEY ANNOUNCEMENTS AND UPDATES
+   A. Strategic Initiatives:
+      • New projects launched
+      • Strategic partnerships
+      • Market expansion plans
+      • Product/service launches
 
-Please ensure:
-- All numerical data is accurately captured
-- Quotes from key speakers are included where significant
-- Technical terms are explained clearly
-- Context is provided for industry-specific information
-- Relationships between different points are clearly shown
-- Both positive and challenging aspects are balanced
-- Future implications are thoroughly analyzed
+   B. Organizational Changes:
+      • Leadership changes
+      • Structural modifications
+      • Team updates
+      • Policy changes
 
-Format the summary with clear headings, bullet points, and paragraphs for readability. Include any specific terminology used in the transcript while ensuring it's understandable to a general business audience.
+   C. Market and Competition:
+      • Competitive landscape changes
+      • Market trends discussed
+      • Industry challenges mentioned
+      • Regulatory updates
 
-Transcript:
+4. FINANCIAL ANALYSIS
+   A. Performance Review:
+      • Detailed breakdown of financial results
+      • Segment-wise performance
+      • Regional performance
+      • Cost structure analysis
+
+   B. Future Projections:
+      • Guidance provided
+      • Growth targets
+      • Investment plans
+      • Expected challenges
+
+5. STAKEHOLDER IMPACT
+   A. For Investors:
+      • Return projections
+      • Risk factors
+      • Investment opportunities
+      • Capital allocation plans
+
+   B. For Customers:
+      • Product/service changes
+      • Pricing updates
+      • Service improvements
+      • Support initiatives
+
+   C. For Employees:
+      • Organizational changes
+      • Policy updates
+      • Growth opportunities
+      • Cultural initiatives
+
+6. NOTABLE QUOTES AND STATEMENTS
+   Format each quote as: "Quote text" - Speaker Name, Title
+   Include 4-5 most significant quotes that:
+   • Announce major changes
+   • Provide strategic insight
+   • Address key concerns
+   • Share future vision
+
+7. RISK FACTORS AND CHALLENGES
+   A. Current Challenges:
+      • Operational issues
+      • Market challenges
+      • Competition
+      • Resource constraints
+
+   B. Future Risks:
+      • Potential threats
+      • Market uncertainties
+      • Regulatory concerns
+      • Technology risks
+
+8. ACTION ITEMS AND NEXT STEPS
+   A. Immediate Actions (Next 30 Days):
+      • List specific tasks
+      • Assigned responsibilities
+      • Expected outcomes
+      • Deadlines
+
+   B. Short-term Plans (1-6 Months):
+      • Strategic initiatives
+      • Project milestones
+      • Expected developments
+      • Follow-up events
+
+   C. Long-term Objectives:
+      • Strategic goals
+      • Growth targets
+      • Development plans
+      • Vision alignment
+
+IMPORTANT GUIDELINES:
+1. Maintain consistent formatting throughout
+2. Use bullet points for lists and key points
+3. Include specific numbers and percentages wherever mentioned
+4. Quote speakers directly when sharing important information
+5. Provide context for industry-specific terms
+6. Highlight year-over-year or quarter-over-quarter comparisons
+7. Include ALL numerical data mentioned
+8. Specify exact dates and timeframes when mentioned
+
+Transcript to analyze:
 ${content}`;
 
-  // Add type-specific prompting
+  // Add type-specific analysis requirements
   switch (type) {
     case 'earnings':
       return basePrompt + `
 
-Additional Focus Areas for Earnings Call:
-- Detailed breakdown of revenue streams
-- Segment-wise performance analysis
-- Cash flow and balance sheet highlights
-- Dividend and share buyback information
-- Guidance and forecasts
-- Analyst question themes and management responses
-- Market reaction indicators`;
+ADDITIONAL EARNINGS CALL REQUIREMENTS:
+1. Detailed financial metrics:
+   • EPS figures and changes
+   • Revenue breakdown by segment
+   • Gross and operating margins
+   • Cash flow details
+   • Balance sheet highlights
+
+2. Analyst Questions:
+   • List key questions asked
+   • Management responses
+   • Follow-up clarifications
+   • Unaddressed concerns
+
+3. Market Response:
+   • Stock price impact
+   • Trading volume
+   • Analyst reactions
+   • Market sentiment changes`;
 
     case 'interview':
       return basePrompt + `
 
-Additional Focus Areas for Interview:
-- Personal insights and opinions expressed
-- Experience-based learnings shared
-- Career trajectory discussions
-- Industry wisdom and advice
-- Leadership philosophy
-- Future predictions and trends
-- Personal success stories and challenges`;
+ADDITIONAL INTERVIEW REQUIREMENTS:
+1. Personal Background:
+   • Career history
+   • Key achievements
+   • Educational background
+   • Personal philosophy
+
+2. Leadership Insights:
+   • Management style
+   • Decision-making approach
+   • Team building strategies
+   • Crisis management experience
+
+3. Industry Perspective:
+   • Market trends analysis
+   • Future predictions
+   • Technology impact
+   • Innovation views`;
 
     case 'meeting':
       return basePrompt + `
 
-Additional Focus Areas for Meeting:
-- Decision-making processes discussed
-- Team dynamics and interactions
-- Project updates and timelines
-- Resource allocation discussions
-- Risk assessments and mitigation plans
-- Team responsibilities and assignments
-- Meeting efficiency and effectiveness`;
+ADDITIONAL MEETING REQUIREMENTS:
+1. Meeting Dynamics:
+   • Discussion flow
+   • Participation levels
+   • Decision-making process
+   • Conflict resolution
+
+2. Project Updates:
+   • Status reports
+   • Timeline changes
+   • Resource allocation
+   • Risk assessments
+
+3. Team Interaction:
+   • Collaboration points
+   • Task assignments
+   • Communication patterns
+   • Follow-up responsibilities`;
 
     default:
       return basePrompt;

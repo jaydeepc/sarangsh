@@ -40,6 +40,19 @@ export default async function handler(request) {
       });
     }
 
+    // Add system message to enforce structured output
+    const systemMessage = `You are a precise and thorough analyst. Your task is to:
+1. Extract ALL information from the provided transcript
+2. Organize it into the exact sections specified
+3. Maintain consistent formatting with proper indentation
+4. Include ALL numbers, quotes, and specific details mentioned
+5. Use bullet points for better readability
+6. Never skip any section, even if information is limited
+7. Clearly attribute quotes to speakers
+8. Format numbers with proper units and comparisons
+9. Highlight year-over-year and quarter-over-quarter changes
+10. Provide context for industry-specific terms`;
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -52,10 +65,17 @@ export default async function handler(request) {
         max_tokens: 4096,
         messages: [
           {
+            role: 'system',
+            content: systemMessage
+          },
+          {
             role: 'user',
             content: prompt
           }
-        ]
+        ],
+        temperature: 0.3, // Lower temperature for more consistent output
+        top_p: 0.9,
+        top_k: 50
       })
     });
 
@@ -65,7 +85,21 @@ export default async function handler(request) {
       throw new Error(data.error?.message || 'Failed to generate summary');
     }
 
-    return new Response(JSON.stringify(data), {
+    // Process the response to ensure consistent formatting
+    let summary = data.content[0].text;
+    
+    // Ensure proper section spacing
+    summary = summary.replace(/\n{3,}/g, '\n\n');
+    
+    // Ensure consistent bullet points
+    summary = summary.replace(/[•●]/g, '•');
+    
+    // Ensure proper quote formatting
+    summary = summary.replace(/[""]([^""]+)[""]\s*-\s*([^"\n]+)/g, '"$1" - $2');
+
+    return new Response(JSON.stringify({
+      content: [{ text: summary }]
+    }), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
