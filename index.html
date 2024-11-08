@@ -7,9 +7,35 @@
     <meta name="description" content="Sarangsh - AI-Powered Call Summarizer using Claude" />
     <meta name="theme-color" content="#FF6138" />
     <title>सारांश - AI Call Summarizer</title>
-    <base href="/" />
+    <style>
+      /* Initial loading state */
+      #root:empty {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f9fafb;
+      }
+      #root:empty::after {
+        content: "";
+        width: 48px;
+        height: 48px;
+        border: 4px solid #ff6138;
+        border-bottom-color: transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      /* Prevent FOUC */
+      .js-loading * {
+        display: none;
+      }
+    </style>
     <script>
-      // Handle client-side routing in production
+      // Handle client-side routing
       (function() {
         const { pathname } = window.location;
         if (pathname !== '/' && !pathname.includes('.')) {
@@ -17,6 +43,12 @@
           window.history.replaceState(null, null, url);
         }
       })();
+      // Add loading class
+      document.documentElement.className = 'js-loading';
+      // Remove loading class after page load
+      window.addEventListener('DOMContentLoaded', function() {
+        document.documentElement.className = '';
+      });
     </script>
   </head>
   <body>
