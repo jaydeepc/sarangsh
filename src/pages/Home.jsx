@@ -35,17 +35,17 @@ const Home = ({ apiKey }) => {
 
   const handleFileSelection = (selectedFile) => {
     if (selectedFile) {
-      if (!config.validation.isValidFileType(selectedFile.type)) {
-        setError(config.ERRORS.INVALID_FILE_TYPE);
-        return;
+      if (selectedFile.type === 'application/pdf') {
+        if (selectedFile.size > 10 * 1024 * 1024) {
+          setError('File size must be less than 10MB');
+          return;
+        }
+        setFile(selectedFile);
+        setText('');
+        setError('');
+      } else {
+        setError('Please upload a PDF file');
       }
-      if (!config.validation.isValidFileSize(selectedFile.size)) {
-        setError(config.ERRORS.FILE_TOO_LARGE);
-        return;
-      }
-      setFile(selectedFile);
-      setText(''); // Clear text input when PDF is uploaded
-      setError('');
     }
   };
 
@@ -56,7 +56,7 @@ const Home = ({ apiKey }) => {
 
   const handleTextInput = (e) => {
     setText(e.target.value);
-    setFile(null); // Clear file when text is entered
+    setFile(null);
     setError('');
   };
 
@@ -69,7 +69,7 @@ const Home = ({ apiKey }) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (event) => resolve(event.target.result);
-      reader.onerror = () => reject(new Error(config.ERRORS.READ_FILE_ERROR));
+      reader.onerror = () => reject(new Error('Failed to read file'));
       reader.readAsText(file);
     });
   };
@@ -80,14 +80,8 @@ const Home = ({ apiKey }) => {
     setIsLoading(true);
 
     try {
-      // Validate input
       if (!text.trim() && !file) {
-        throw new Error(config.ERRORS.NO_CONTENT);
-      }
-
-      // Validate API key
-      if (!config.validation.isValidApiKey(apiKey)) {
-        throw new Error(config.ERRORS.INVALID_API_KEY);
+        throw new Error('Please provide either text or upload a PDF file');
       }
 
       let content = '';
@@ -96,161 +90,49 @@ const Home = ({ apiKey }) => {
         try {
           content = await readFileAsText(file);
         } catch {
-          throw new Error(config.ERRORS.READ_FILE_ERROR);
+          throw new Error('Failed to read PDF file');
         }
       } else {
         content = text.trim();
       }
 
-      // Validate content length
-      if (!config.validation.isValidContentLength(content.length)) {
-        throw new Error(
-          content.length < config.SETTINGS.MIN_CONTENT_LENGTH 
-            ? config.ERRORS.CONTENT_TOO_SHORT 
-            : config.ERRORS.CONTENT_TOO_LONG
-        );
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), config.SETTINGS.API_TIMEOUT);
-
-      try {
-        const response = await fetch(config.API_CONFIG.ENDPOINT, {
-          method: 'POST',
-          signal: controller.signal,
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-            'anthropic-version': config.API_CONFIG.API_VERSION
-          },
-          body: JSON.stringify({
-            model: config.API_CONFIG.MODEL,
-            max_tokens: config.API_CONFIG.MAX_TOKENS,
-            temperature: config.API_CONFIG.TEMPERATURE,
-            messages: [
-              {
-                role: 'user',
-                content: `Please analyze this ${callType} transcript and provide a comprehensive summary with the following EXACT structure. Include ALL numbers, quotes, and specific details mentioned:
-
-1. EXECUTIVE OVERVIEW
-   A. Event Information
-      • Event type and purpose
-      • Date and time
-      • Duration
-      • Platform/venue
-   
-   B. Participants
-      • List all speakers with full names and titles
-      • Key attendees mentioned
-      • Host/moderator details
-
-   C. Key Announcements
-      • Major decisions announced
-      • Significant changes
-      • Important updates
-      • Critical numbers shared
-
-2. DETAILED METRICS
-   A. Financial Data
-      • Revenue figures (with % changes)
-      • Profit/margins
-      • Growth rates
-      • Market share
-      • Stock performance
-
-   B. Operational Numbers
-      • Customer metrics
-      • Production/efficiency data
-      • Market penetration
-      • Geographic presence
-
-3. IMPORTANT QUOTES
-   Format: "Quote text" - Speaker Name, Title
-   Include 4-5 most significant quotes about:
-   • Strategic decisions
-   • Financial results
-   • Future plans
-   • Market position
-
-4. STRATEGIC UPDATES
-   A. Current Initiatives
-      • Ongoing projects
-      • Recent launches
-      • Market expansion
-      • Partnerships
-
-   B. Future Plans
-      • Upcoming launches
-      • Growth targets
-      • Investment plans
-      • Market strategies
-
-5. ANALYSIS
-   A. Performance Review
-      • Strengths highlighted
-      • Challenges faced
-      • Market position
-      • Competitive analysis
-
-   B. Risk Factors
-      • Market challenges
-      • Competitive threats
-      • Operational risks
-      • Regulatory concerns
-
-6. ACTION ITEMS
-   A. Short-term (Next 90 Days)
-      • Immediate priorities
-      • Specific deadlines
-      • Assigned responsibilities
-      • Expected outcomes
-
-   B. Long-term
-      • Strategic goals
-      • Development plans
-      • Growth targets
-      • Vision alignment
-
-IMPORTANT GUIDELINES:
-1. Use bullet points consistently
-2. Include ALL numerical data
-3. Quote speakers directly for important statements
-4. Maintain exact section structure
-5. Don't skip any section
-6. Provide context for industry terms
-
-Transcript to analyze:
+      const response = await fetch(config.API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': config.API_VERSION
+        },
+        body: JSON.stringify({
+          model: config.MODEL,
+          max_tokens: config.MAX_TOKENS,
+          messages: [
+            {
+              role: 'user',
+              content: `Analyze this ${callType} transcript and provide a detailed summary. Extract ALL important information including numbers, quotes, and specific details:
 
 ${content}`
-              }
-            ]
-          })
-        });
+            }
+          ]
+        })
+      });
 
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error?.message || config.ERRORS.API_ERROR);
-        }
-
-        const data = await response.json();
-        
-        if (!data.content?.[0]?.text?.trim()) {
-          throw new Error(config.ERRORS.SUMMARY_EMPTY);
-        }
-
-        localStorage.setItem('summary', data.content[0].text);
-        navigate('/summary');
-      } catch (error) {
-        if (error.name === 'AbortError') {
-          throw new Error('Request timed out. Please try again.');
-        }
-        throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'Failed to generate summary');
       }
+
+      const data = await response.json();
+      
+      if (!data.content?.[0]?.text) {
+        throw new Error('Invalid response from API');
+      }
+
+      localStorage.setItem('summary', data.content[0].text);
+      navigate('/summary');
     } catch (err) {
       console.error('Error:', err);
-      setError(err.message || config.ERRORS.API_ERROR);
+      setError(err.message || 'Failed to generate summary');
     } finally {
       setIsLoading(false);
     }
@@ -258,7 +140,9 @@ ${content}`
 
   return (
     <motion.div
-      {...config.ANIMATIONS.PAGE_TRANSITION}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
       className="max-w-4xl mx-auto"
     >
       <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
@@ -268,7 +152,8 @@ ${content}`
         
         {error && (
           <motion.div 
-            {...config.ANIMATIONS.ERROR_ANIMATION}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
             className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg"
           >
             <div className="text-red-600 font-medium">Error</div>
