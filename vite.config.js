@@ -8,18 +8,15 @@ export default defineConfig({
     sourcemap: true,
     minify: true,
     rollupOptions: {
-      external: [
-        'pdfjs-dist/build/pdf.worker.entry'
-      ]
+      output: {
+        manualChunks: {
+          pdfjsLib: ['pdfjs-dist/legacy/build/pdf']
+        }
+      }
     }
   },
   optimizeDeps: {
-    include: ['pdfjs-dist']
-  },
-  resolve: {
-    alias: {
-      'pdfjs-dist': 'pdfjs-dist/legacy/build/pdf'
-    }
+    include: ['pdfjs-dist/legacy/build/pdf']
   },
   server: {
     port: 5173,
