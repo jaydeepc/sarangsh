@@ -84,9 +84,9 @@ const Summary = () => {
                   
                   {/* Section Overview */}
                   {overview && (
-                    <p className="text-gray-700 mb-6 leading-relaxed border-l-4 border-sarangsh/20 pl-4 italic">
+                    <div className="overview-text">
                       {overview}
-                    </p>
+                    </div>
                   )}
                   
                   {/* Bullet Points */}
