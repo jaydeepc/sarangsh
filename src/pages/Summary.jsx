@@ -1,198 +1,189 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiDownload, FiLoader, FiArrowLeft } from 'react-icons/fi';
-import { PDFDownloadLink, Document, Page, Text, StyleSheet, View } from '@react-pdf/renderer';
-import PropTypes from 'prop-types';
-
-const styles = StyleSheet.create({
-  page: { padding: 30, fontFamily: 'Helvetica' },
-  title: { fontSize: 24, marginBottom: 20 },
-  section: { marginBottom: 15 },
-  heading: { fontSize: 18, marginBottom: 10 },
-  text: { fontSize: 12, lineHeight: 1.5 },
-});
-
-const SummaryPDF = ({ summary }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <Text style={styles.title}>Summary Report</Text>
-      <View style={styles.section}>
-        <Text style={styles.text}>{summary}</Text>
-      </View>
-    </Page>
-  </Document>
-);
-
-SummaryPDF.propTypes = {
-  summary: PropTypes.string.isRequired,
-};
-
-const parseSummarySection = (text, sectionTitle) => {
-  const sectionRegex = new RegExp(`${sectionTitle}:([\\s\\S]*?)(?=\\d\\.\\s|$)`);
-  const match = text.match(sectionRegex);
-  if (!match) return { overview: '', points: [] };
-  
-  const lines = match[1].split('\n').map(line => line.trim()).filter(Boolean);
-  const overview = lines.find(line => !line.startsWith('-')) || '';
-  const points = lines.filter(line => line.startsWith('-')).map(line => line.substring(1).trim());
-  
-  return { overview, points };
-};
-
-const SummarySection = ({ title, content }) => (
-  <div className="bg-white rounded-xl p-6 shadow-sm">
-    <h3 className="text-xl font-semibold text-gray-800 mb-4">{title}</h3>
-    {content.overview && (
-      <p className="text-gray-600 leading-relaxed mb-6">
-        {content.overview}
-      </p>
-    )}
-    {content.points.length > 0 && (
-      <div className="space-y-3">
-        {content.points.map((point, index) => (
-          <div key={index} className="flex items-start space-x-3">
-            <div className="w-2 h-2 rounded-full bg-gradient-orange mt-2 flex-shrink-0" />
-            <p className="text-gray-600 leading-relaxed">{point}</p>
-          </div>
-        ))}
-      </div>
-    )}
-  </div>
-);
-
-SummarySection.propTypes = {
-  title: PropTypes.string.isRequired,
-  content: PropTypes.shape({
-    overview: PropTypes.string,
-    points: PropTypes.arrayOf(PropTypes.string)
-  }).isRequired,
-};
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { FiArrowLeft, FiDownload } from 'react-icons/fi';
+import jsPDF from 'jspdf';
 
 const Summary = () => {
   const [summary, setSummary] = useState('');
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const loadSummary = () => {
-      const savedSummary = localStorage.getItem('summary');
-      if (!savedSummary) {
-        navigate('/');
-        return;
-      }
+    const savedSummary = localStorage.getItem('summary');
+    if (savedSummary) {
       setSummary(savedSummary);
-      setLoading(false);
-    };
+    }
+  }, []);
 
-    loadSummary();
-  }, [navigate]);
+  const formatSummary = (text) => {
+    // Split into sections
+    const sections = text.split(/(?=\d+\.\s+[A-Z\s]+\n)/);
+    
+    return sections.map((section, index) => {
+      if (!section.trim()) return null;
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-white">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-        >
-          <FiLoader className="w-12 h-12 text-sarangsh-orange" />
-        </motion.div>
-      </div>
-    );
-  }
+      // Extract section title
+      const titleMatch = section.match(/\d+\.\s+[A-Z\s]+\n/);
+      if (!titleMatch) return null;
 
-  const executiveOverview = parseSummarySection(summary, '1\\. Executive Overview');
-  const keyHighlights = parseSummarySection(summary, '2\\. Key Highlights');
-  const criticalAnalysis = parseSummarySection(summary, '3\\. Critical Analysis');
-  const forwardLooking = parseSummarySection(summary, '4\\. Forward-Looking Insights');
-  const actionItems = parseSummarySection(summary, '5\\. Action Items');
+      const title = titleMatch[0].trim();
+      const content = section.replace(titleMatch[0], '').trim();
+
+      // Process subsections
+      const subsections = content.split(/(?=[A-Z]\.\s+[A-Z][a-z])/);
+
+      return (
+        <div key={index} className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">{title}</h2>
+          {subsections.map((subsection, subIndex) => {
+            if (!subsection.trim()) return null;
+
+            // Extract subsection title
+            const subTitleMatch = subsection.match(/[A-Z]\.\s+[^\n]+/);
+            if (!subTitleMatch) return null;
+
+            const subTitle = subTitleMatch[0];
+            const subContent = subsection.replace(subTitleMatch[0], '').trim();
+
+            // Convert bullet points to list items
+            const bulletPoints = subContent.split('\n').map((line, lineIndex) => {
+              const trimmedLine = line.trim();
+              if (!trimmedLine) return null;
+
+              // Check if it's a bullet point
+              if (trimmedLine.startsWith('•')) {
+                return (
+                  <li key={lineIndex} className="ml-4 mb-2">
+                    {trimmedLine.substring(1).trim()}
+                  </li>
+                );
+              }
+
+              // Check if it's a quote
+              if (trimmedLine.includes('" - ')) {
+                return (
+                  <blockquote key={lineIndex} className="border-l-4 border-sarangsh-orange pl-4 my-2 italic">
+                    {trimmedLine}
+                  </blockquote>
+                );
+              }
+
+              return (
+                <p key={lineIndex} className="mb-2">
+                  {trimmedLine}
+                </p>
+              );
+            });
+
+            return (
+              <div key={subIndex} className="mb-6">
+                <h3 className="text-xl font-semibold text-gray-700 mb-3">{subTitle}</h3>
+                <div className="pl-4">{bulletPoints}</div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    });
+  };
+
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(24);
+    doc.setTextColor(255, 97, 56); // sarangsh-orange
+    doc.text('Summary Report', 20, 20);
+
+    // Add content
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    
+    const lines = summary.split('\n');
+    let y = 40;
+    
+    lines.forEach(line => {
+      if (line.match(/^\d+\.\s+[A-Z\s]+$/)) {
+        // Section title
+        y += 10;
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        doc.text(line, 20, y);
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'normal');
+        y += 10;
+      } else if (line.match(/^[A-Z]\.\s+/)) {
+        // Subsection title
+        y += 5;
+        doc.setFont(undefined, 'bold');
+        doc.text(line, 25, y);
+        doc.setFont(undefined, 'normal');
+        y += 7;
+      } else if (line.trim().startsWith('•')) {
+        // Bullet point
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(line, 30, y);
+        y += 7;
+      } else if (line.includes('" - ')) {
+        // Quote
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.setFont(undefined, 'italic');
+        doc.text(line, 30, y);
+        doc.setFont(undefined, 'normal');
+        y += 7;
+      } else if (line.trim()) {
+        // Regular text
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(line, 20, y);
+        y += 7;
+      }
+    });
+
+    doc.save('summary.pdf');
+  };
 
   return (
-    <AnimatePresence>
-      <div className="min-h-screen bg-white">
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="sticky top-0 z-10 bg-white border-b border-gray-100"
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="max-w-4xl mx-auto"
+    >
+      <div className="flex justify-between items-center mb-8">
+        <Link
+          to="/"
+          className="flex items-center text-gray-600 hover:text-sarangsh-orange transition-colors"
         >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="py-6 flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate('/')}
-                  className="p-2 hover:bg-gray-50 rounded-full transition-colors"
-                >
-                  <FiArrowLeft className="w-6 h-6 text-sarangsh-orange" />
-                </motion.button>
-                <h1 className="text-3xl font-bold bg-gradient-orange text-transparent bg-clip-text">
-                  Summary Report
-                </h1>
-              </div>
-              
-              <PDFDownloadLink
-                document={<SummaryPDF summary={summary} />}
-                fileName="summary-report.pdf"
-                className="inline-flex items-center px-6 py-3 bg-gradient-orange text-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
-              >
-                {({ loading: pdfLoading }) => (
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="flex items-center space-x-2"
-                  >
-                    <FiDownload className="w-5 h-5" />
-                    <span className="font-medium">{pdfLoading ? 'Loading...' : 'Download PDF'}</span>
-                  </motion.div>
-                )}
-              </PDFDownloadLink>
-            </div>
-          </div>
-        </motion.div>
+          <FiArrowLeft className="mr-2" />
+          Back
+        </Link>
+        <button
+          onClick={downloadPDF}
+          className="flex items-center px-4 py-2 bg-gradient-orange text-white rounded-lg hover:opacity-90 transition-opacity"
+        >
+          <FiDownload className="mr-2" />
+          Download PDF
+        </button>
+      </div>
 
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Executive Overview */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-12"
-          >
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">Executive Overview</h2>
-            <SummarySection 
-              title="Overview"
-              content={executiveOverview}
-            />
-          </motion.div>
-
-          {/* Key Insights Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-            <SummarySection 
-              title="Key Highlights"
-              content={keyHighlights}
-            />
-            <SummarySection 
-              title="Critical Analysis"
-              content={criticalAnalysis}
-            />
-          </div>
-
-          {/* Forward Looking & Action Items */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <SummarySection 
-              title="Forward-Looking Insights"
-              content={forwardLooking}
-            />
-            <SummarySection 
-              title="Action Items"
-              content={actionItems}
-            />
-          </div>
+      <div className="bg-white rounded-2xl shadow-xl p-8">
+        <h1 className="text-4xl font-bold bg-gradient-orange text-transparent bg-clip-text mb-8">
+          Summary Report
+        </h1>
+        
+        <div className="prose max-w-none">
+          {formatSummary(summary)}
         </div>
       </div>
-    </AnimatePresence>
+    </motion.div>
   );
 };
 
