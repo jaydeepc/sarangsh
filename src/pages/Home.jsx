@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiUpload, FiArrowRight, FiX } from 'react-icons/fi';
+import { FiUpload, FiArrowRight } from 'react-icons/fi';
 import PropTypes from 'prop-types';
 import { config } from '../config';
+import * as pdfjsLib from 'pdfjs-dist';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 const Home = ({ apiKey }) => {
   const [text, setText] = useState('');
@@ -28,7 +31,6 @@ const Home = ({ apiKey }) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-
     const droppedFile = e.dataTransfer.files[0];
     handleFileSelection(droppedFile);
   };
@@ -60,49 +62,29 @@ const Home = ({ apiKey }) => {
     setError('');
   };
 
-  const clearFile = () => {
-    setFile(null);
-    setError('');
-  };
-
   const readPdfFile = async (file) => {
     try {
-      // Dynamically import PDF.js
-      const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-
       const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+      
       let fullText = '';
       
-      // Show loading message for large PDFs
-      if (pdf.numPages > 10) {
-        setError('Processing large PDF, please wait...');
-      }
-      
       for (let i = 1; i <= pdf.numPages; i++) {
-        try {
-          const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          const pageText = textContent.items
-            .map(item => item.str)
-            .join(' ')
-            .replace(/\s+/g, ' ');
-          fullText += pageText + '\n\n';
-        } catch (pageError) {
-          console.error(`Error reading page ${i}:`, pageError);
-          continue; // Skip problematic pages
-        }
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map(item => item.str)
+          .join(' ')
+          .replace(/\s+/g, ' ');
+        fullText += pageText + '\n\n';
       }
       
-      setError(''); // Clear any loading messages
-      const cleanText = fullText.trim();
-      
-      if (!cleanText) {
+      if (!fullText.trim()) {
         throw new Error('No readable text found in PDF. Please try copying and pasting the text directly.');
       }
       
-      return cleanText;
+      return fullText;
     } catch (err) {
       console.error('Error reading PDF:', err);
       throw new Error('Failed to read PDF file. Please try copying and pasting the text directly.');
@@ -148,12 +130,11 @@ ${content}`
         })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'Failed to generate summary');
-      }
-
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.details || data.error?.message || 'Failed to generate summary');
+      }
       
       if (!data.content?.[0]?.text) {
         throw new Error('Invalid response from API');
@@ -170,112 +151,118 @@ ${content}`
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="max-w-4xl mx-auto"
-    >
-      <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-        <h2 className="text-3xl font-semibold mb-6 text-gray-800">
-          Transform Your Calls into Clear Summaries
-        </h2>
-        
-        {error && (
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg"
-          >
-            <div className="text-red-600 font-medium">
-              {error.includes('Processing') ? 'Status' : 'Error'}
-            </div>
-            <div className={error.includes('Processing') ? 'text-gray-600' : 'text-red-500'}>
-              {error}
-            </div>
-          </motion.div>
-        )}
-
-        <div className="mb-6">
-          <label className="block text-gray-700 mb-2">Call Type</label>
-          <select
-            value={callType}
-            onChange={(e) => setCallType(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sarangsh-orange focus:border-transparent"
-          >
-            <option value="earnings">Earnings Call</option>
-            <option value="interview">Interview</option>
-            <option value="meeting">Meeting</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-
-        <div className="mb-6">
-          <label className="block text-gray-700 mb-2">Upload PDF Transcript</label>
-          <div
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-            className={`relative flex items-center justify-center w-full ${
-              dragActive ? 'border-sarangsh-orange bg-orange-50' : 'border-gray-300'
-            } ${
-              file ? 'bg-orange-50' : 'bg-white'
-            } border-2 border-dashed rounded-lg p-6 transition-colors`}
-          >
-            <label className="flex flex-col items-center cursor-pointer">
-              <FiUpload className={`w-8 h-8 ${file ? 'text-sarangsh-orange' : 'text-gray-400'}`} />
-              <span className="mt-2 text-sm text-gray-500">
-                {file ? file.name : 'Click or drag to upload a PDF file'}
-              </span>
-              <input
-                type="file"
-                className="hidden"
-                onChange={handleFileUpload}
-                accept=".pdf"
-              />
-            </label>
-            {file && (
-              <button
-                onClick={clearFile}
-                className="absolute top-2 right-2 p-1 hover:bg-red-100 rounded-full"
-              >
-                <FiX className="w-5 h-5 text-red-500" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <label className="block text-gray-700 mb-2">Or Paste Transcript</label>
-          <textarea
-            value={text}
-            onChange={handleTextInput}
-            className="w-full h-64 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sarangsh-orange focus:border-transparent"
-            placeholder="Paste your transcript here..."
-            disabled={file !== null}
-          />
-        </div>
-
-        <button
-          onClick={handleSubmit}
-          disabled={(!text.trim() && !file) || isLoading}
-          className="w-full py-4 px-6 bg-gradient-orange text-white rounded-lg font-semibold flex items-center justify-center space-x-2 hover:opacity-90 transition-opacity disabled:opacity-50"
-        >
-          {isLoading ? (
-            <div className="flex items-center space-x-2">
-              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
-              <span>Generating Summary...</span>
-            </div>
-          ) : (
-            <div className="flex items-center space-x-2">
-              <span>Generate Summary</span>
-              <FiArrowRight />
-            </div>
-          )}
-        </button>
+    <div className="min-h-screen bg-gradient-to-br from-white to-gray-50">
+      <div className="relative">
+        <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-sarangsh-light opacity-20 rounded-bl-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-sarangsh opacity-10 rounded-tr-full blur-3xl" />
       </div>
-    </motion.div>
+
+      <div className="max-w-4xl mx-auto px-6 py-20 relative">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-5xl font-bold bg-gradient-sarangsh text-transparent bg-clip-text mb-4">
+            Transform Your Documents
+          </h1>
+          <p className="text-gray-600 text-xl">
+            Upload your transcript and get a detailed summary in seconds
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/20 relative overflow-hidden"
+        >
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 bg-red-50 rounded-xl border border-red-100"
+            >
+              <div className="text-red-600">
+                {error}
+              </div>
+            </motion.div>
+          )}
+
+          <div className="mb-8">
+            <label className="block text-gray-700 mb-2 font-medium">Document Type</label>
+            <select
+              value={callType}
+              onChange={(e) => setCallType(e.target.value)}
+              className="w-full p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-sarangsh/20 focus:border-sarangsh transition-all duration-300"
+            >
+              <option value="earnings">Earnings Call</option>
+              <option value="interview">Interview</option>
+              <option value="meeting">Meeting</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div className="mb-8">
+            <label className="block text-gray-700 mb-2 font-medium">Upload PDF Transcript</label>
+            <div
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+              className={`relative flex items-center justify-center w-full h-48 ${
+                dragActive ? 'border-sarangsh bg-sarangsh/5' : 'border-gray-200'
+              } ${
+                file ? 'bg-sarangsh/5' : 'bg-white'
+              } border-2 border-dashed rounded-xl transition-colors duration-300 group hover:border-sarangsh hover:bg-sarangsh/5`}
+            >
+              <label className="flex flex-col items-center cursor-pointer">
+                <FiUpload className={`w-10 h-10 ${file ? 'text-sarangsh' : 'text-gray-400'} group-hover:text-sarangsh transition-colors duration-300`} />
+                <span className="mt-4 text-sm text-gray-500">
+                  {file ? file.name : 'Click or drag to upload a PDF file'}
+                </span>
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                  accept=".pdf"
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <label className="block text-gray-700 mb-2 font-medium">Or Paste Transcript</label>
+            <textarea
+              value={text}
+              onChange={handleTextInput}
+              className="w-full h-64 p-4 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-sarangsh/20 focus:border-sarangsh transition-all duration-300"
+              placeholder="Paste your transcript here..."
+              disabled={file !== null}
+            />
+          </div>
+
+          <button
+            onClick={handleSubmit}
+            disabled={(!text.trim() && !file) || isLoading}
+            className="w-full py-4 px-6 bg-gradient-sarangsh text-white rounded-xl font-semibold flex items-center justify-center space-x-2 hover:shadow-glow transition-all duration-300 disabled:opacity-50"
+          >
+            {isLoading ? (
+              <div className="flex items-center space-x-2">
+                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                <span>Generating Summary...</span>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <span>Generate Summary</span>
+                <FiArrowRight />
+              </div>
+            )}
+          </button>
+        </motion.div>
+      </div>
+    </div>
   );
 };
 

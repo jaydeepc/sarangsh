@@ -8,121 +8,20 @@
 }
 
 body {
-  @apply bg-white text-gray-800 antialiased;
+  @apply bg-gradient-to-br from-white to-gray-50 text-gray-800 antialiased min-h-screen;
 }
 
 /* Gradient backgrounds */
 .bg-gradient-orange {
-  background: linear-gradient(45deg, var(--sarangsh-orange), var(--sarangsh-orange-light));
+  background: linear-gradient(135deg, var(--sarangsh-orange), var(--sarangsh-orange-light));
 }
 
 /* Gradient text */
 .bg-gradient-orange.text-transparent.bg-clip-text {
-  background-image: linear-gradient(45deg, var(--sarangsh-orange), var(--sarangsh-orange-light));
+  background-image: linear-gradient(135deg, var(--sarangsh-orange), var(--sarangsh-orange-light));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-}
-
-/* Card styles */
-.summary-card {
-  @apply bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300;
-}
-
-/* Overview paragraph */
-.overview-paragraph {
-  @apply text-gray-600 leading-relaxed mb-6 text-lg;
-  line-height: 1.7;
-}
-
-/* Bullet points container */
-.bullet-points {
-  @apply space-y-3 pl-1;
-}
-
-/* Individual bullet point */
-.bullet-point {
-  @apply flex items-start space-x-3;
-}
-
-.bullet-point-dot {
-  @apply w-2 h-2 rounded-full mt-2 flex-shrink-0;
-  background: linear-gradient(45deg, var(--sarangsh-orange), var(--sarangsh-orange-light));
-}
-
-.bullet-point-text {
-  @apply text-gray-600 leading-relaxed;
-}
-
-/* Section headers */
-.section-title {
-  @apply text-xl font-semibold text-gray-800 mb-4;
-}
-
-.main-title {
-  @apply text-4xl font-bold text-gray-900 mb-6;
-}
-
-/* Header */
-.sticky-header {
-  @apply sticky top-0 z-10 bg-white border-b border-gray-100;
-}
-
-/* Download button */
-.download-btn {
-  @apply inline-flex items-center px-6 py-3 bg-gradient-orange text-white rounded-xl 
-         shadow-sm hover:shadow-md transition-all duration-300;
-}
-
-.download-btn:hover {
-  @apply opacity-90;
-}
-
-/* Back button */
-.back-btn {
-  @apply p-2 hover:bg-gray-50 rounded-full transition-colors;
-}
-
-.back-btn:hover {
-  @apply text-sarangsh-orange;
-}
-
-/* Loading animation */
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.loading-spin {
-  animation: spin 1s linear infinite;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  @apply w-2;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply rounded-full bg-gray-200 hover:bg-gray-300;
-}
-
-/* Focus styles */
-*:focus {
-  @apply outline-none ring-2 ring-sarangsh-orange/20;
-}
-
-/* Container */
-.content-container {
-  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12;
-}
-
-/* Grid layouts */
-.metrics-grid {
-  @apply grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12;
 }
 
 /* Logo animation */
@@ -138,29 +37,159 @@ body {
   }
 }
 
-.bg-gradient-orange.text-transparent.bg-clip-text {
+.animate-gradient {
   background-size: 200% auto;
-  animation: gradientFlow 3s ease infinite;
+  animation: gradientFlow 6s ease infinite;
 }
 
-/* Section transitions */
-.section-enter {
-  opacity: 0;
-  transform: translateY(20px);
+/* Card styles */
+.card {
+  @apply bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20 hover:shadow-xl transition-shadow duration-300;
+  height: fit-content;
 }
 
-.section-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 500ms, transform 500ms;
+/* Prose styles for better typography */
+.prose {
+  @apply text-gray-700;
 }
 
-/* Card hover effects */
-.summary-section {
-  @apply transition-all duration-300;
+.prose p {
+  @apply mb-4 leading-relaxed;
 }
 
-.summary-section:hover {
-  @apply shadow-md;
+.prose ul {
+  @apply space-y-2;
+}
+
+.prose li {
+  @apply flex items-start space-x-3;
+}
+
+/* Grid layout */
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* Header styles */
+.main-header {
+  @apply bg-gradient-sarangsh text-white py-16 relative overflow-hidden;
+}
+
+/* Section styles */
+.section-card {
+  @apply bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20;
+  transition: all 0.3s ease;
+}
+
+.section-card:hover {
+  @apply shadow-xl;
   transform: translateY(-2px);
+}
+
+/* Icon styles */
+.section-icon {
+  @apply w-10 h-10 rounded-lg bg-gradient-sarangsh p-0.5;
+}
+
+.section-icon-inner {
+  @apply w-full h-full bg-white rounded-lg flex items-center justify-center;
+}
+
+/* Bullet point styles */
+.bullet-point {
+  @apply flex items-start space-x-3;
+}
+
+.bullet-dot {
+  @apply relative flex-shrink-0;
+}
+
+.bullet-dot::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-sarangsh rounded-full blur-sm opacity-50;
+}
+
+.bullet-dot::after {
+  content: '';
+  @apply absolute inset-0 bg-gradient-sarangsh rounded-full;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  @apply relative w-16 h-16;
+}
+
+.loading-spinner::before {
+  content: '';
+  @apply absolute inset-0 rounded-full border-4 border-sarangsh/20;
+}
+
+.loading-spinner::after {
+  content: '';
+  @apply absolute inset-0 rounded-full border-4 border-sarangsh border-t-transparent;
+  animation: spin 1s linear infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  @apply w-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-sarangsh/20 hover:bg-sarangsh/30 transition-colors;
+}
+
+/* Focus styles */
+*:focus {
+  @apply outline-none ring-2 ring-sarangsh/20;
+}
+
+/* Back button */
+.back-button {
+  @apply flex items-center space-x-2 text-gray-600 hover:text-sarangsh transition-all duration-300 px-4 py-2 rounded-lg hover:bg-sarangsh/10;
+}
+
+/* Report title */
+.report-title {
+  @apply text-4xl font-bold bg-gradient-sarangsh text-transparent bg-clip-text mb-2;
+}
+
+/* Overview section */
+.overview-section {
+  @apply col-span-full bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20 mb-6;
+}
+
+/* Content wrapper */
+.content-wrapper {
+  @apply max-w-7xl mx-auto px-6;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .report-grid {
+    grid-template-columns: 1fr;
+  }
 }
