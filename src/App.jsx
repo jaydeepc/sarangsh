@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import Home from './pages/Home';
 import Summary from './pages/Summary';
@@ -19,23 +19,29 @@ function App() {
     }
   }, [apiKey]);
 
+  // Check if summary exists for the Summary route
+  const hasSummary = Boolean(localStorage.getItem('summary'));
+
   if (!apiKey) {
     return <ApiKeyInput onSubmit={handleApiKeySubmit} />;
   }
 
   return (
-    <Router>
+    <BrowserRouter>
       <div className="min-h-screen bg-gray-50">
         <Header onLogout={() => setApiKey('')} />
         <main className="container mx-auto px-4 py-8">
           <Routes>
             <Route path="/" element={<Home apiKey={apiKey} />} />
-            <Route path="/summary" element={<Summary />} />
+            <Route 
+              path="/summary" 
+              element={hasSummary ? <Summary /> : <Navigate to="/" replace />} 
+            />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </div>
-    </Router>
+    </BrowserRouter>
   );
 }
 
