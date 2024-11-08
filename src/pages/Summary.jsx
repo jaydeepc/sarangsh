@@ -42,20 +42,21 @@ const Summary = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-12"
+          className="mb-16"
         >
-          <div className="bg-gradient-sarangsh rounded-3xl p-10 relative overflow-hidden shadow-glow">
+          <div className="bg-gradient-sarangsh rounded-3xl p-12 relative overflow-hidden shadow-glow">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-bl-full" />
             <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/10 rounded-tr-full" />
             <div className="relative">
-              <p className="text-xl text-white leading-relaxed">
+              <h2 className="text-2xl font-bold text-white/90 mb-6">Executive Overview</h2>
+              <p className="text-xl text-white/85 leading-relaxed">
                 {overview}
               </p>
             </div>
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {restSections.map((section, index) => {
             const titleMatch = section.match(/^([^:]+):(.*)/s);
             
@@ -78,7 +79,7 @@ const Summary = () => {
               >
                 <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-sarangsh opacity-10 rounded-bl-full" />
                 <div className="relative">
-                  <h2 className="text-2xl font-bold bg-gradient-sarangsh text-transparent bg-clip-text mb-6">
+                  <h2 className="text-2xl font-bold bg-gradient-sarangsh text-transparent bg-clip-text mb-8">
                     {title.trim()}
                   </h2>
                   
