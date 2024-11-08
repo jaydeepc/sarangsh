@@ -4,226 +4,6 @@ import { motion } from 'framer-motion';
 import { FiUpload, FiArrowRight, FiX } from 'react-icons/fi';
 import PropTypes from 'prop-types';
 
-const getPromptForCallType = (type, content) => {
-  const basePrompt = `You are a highly skilled analyst tasked with creating a detailed, structured summary of the following ${type} transcript. Extract and organize ALL important information, ensuring no key details are missed. Present the information in the following consistent format:
-
-1. EXECUTIVE OVERVIEW
-   A. Event Details:
-      • Full event name and type
-      • Date and time
-      • Host organization/company
-      • Platform/venue used
-      • Duration of event
-
-   B. Key Participants:
-      • List all speakers with their full names and titles
-      • Moderator/host details
-      • Notable attendees mentioned
-
-   C. Main Highlights (3-4 bullet points):
-      • Most significant announcements
-      • Key decisions made
-      • Major changes announced
-      • Critical updates shared
-
-2. DETAILED METRICS AND NUMBERS
-   A. Financial Figures:
-      • Revenue numbers (with % changes)
-      • Profit/loss figures
-      • Margins and ratios
-      • Market share data
-      • Stock/share related figures
-
-   B. Operational Metrics:
-      • Customer/user numbers
-      • Growth statistics
-      • Market penetration data
-      • Efficiency metrics
-      • Performance indicators
-
-   C. Industry Benchmarks:
-      • Competitive comparisons
-      • Market position data
-      • Industry-specific metrics
-
-3. KEY ANNOUNCEMENTS AND UPDATES
-   A. Strategic Initiatives:
-      • New projects launched
-      • Strategic partnerships
-      • Market expansion plans
-      • Product/service launches
-
-   B. Organizational Changes:
-      • Leadership changes
-      • Structural modifications
-      • Team updates
-      • Policy changes
-
-   C. Market and Competition:
-      • Competitive landscape changes
-      • Market trends discussed
-      • Industry challenges mentioned
-      • Regulatory updates
-
-4. FINANCIAL ANALYSIS
-   A. Performance Review:
-      • Detailed breakdown of financial results
-      • Segment-wise performance
-      • Regional performance
-      • Cost structure analysis
-
-   B. Future Projections:
-      • Guidance provided
-      • Growth targets
-      • Investment plans
-      • Expected challenges
-
-5. STAKEHOLDER IMPACT
-   A. For Investors:
-      • Return projections
-      • Risk factors
-      • Investment opportunities
-      • Capital allocation plans
-
-   B. For Customers:
-      • Product/service changes
-      • Pricing updates
-      • Service improvements
-      • Support initiatives
-
-   C. For Employees:
-      • Organizational changes
-      • Policy updates
-      • Growth opportunities
-      • Cultural initiatives
-
-6. NOTABLE QUOTES AND STATEMENTS
-   Format each quote as: "Quote text" - Speaker Name, Title
-   Include 4-5 most significant quotes that:
-   • Announce major changes
-   • Provide strategic insight
-   • Address key concerns
-   • Share future vision
-
-7. RISK FACTORS AND CHALLENGES
-   A. Current Challenges:
-      • Operational issues
-      • Market challenges
-      • Competition
-      • Resource constraints
-
-   B. Future Risks:
-      • Potential threats
-      • Market uncertainties
-      • Regulatory concerns
-      • Technology risks
-
-8. ACTION ITEMS AND NEXT STEPS
-   A. Immediate Actions (Next 30 Days):
-      • List specific tasks
-      • Assigned responsibilities
-      • Expected outcomes
-      • Deadlines
-
-   B. Short-term Plans (1-6 Months):
-      • Strategic initiatives
-      • Project milestones
-      • Expected developments
-      • Follow-up events
-
-   C. Long-term Objectives:
-      • Strategic goals
-      • Growth targets
-      • Development plans
-      • Vision alignment
-
-IMPORTANT GUIDELINES:
-1. Maintain consistent formatting throughout
-2. Use bullet points for lists and key points
-3. Include specific numbers and percentages wherever mentioned
-4. Quote speakers directly when sharing important information
-5. Provide context for industry-specific terms
-6. Highlight year-over-year or quarter-over-quarter comparisons
-7. Include ALL numerical data mentioned
-8. Specify exact dates and timeframes when mentioned
-
-Transcript to analyze:
-${content}`;
-
-  // Add type-specific analysis requirements
-  switch (type) {
-    case 'earnings':
-      return basePrompt + `
-
-ADDITIONAL EARNINGS CALL REQUIREMENTS:
-1. Detailed financial metrics:
-   • EPS figures and changes
-   • Revenue breakdown by segment
-   • Gross and operating margins
-   • Cash flow details
-   • Balance sheet highlights
-
-2. Analyst Questions:
-   • List key questions asked
-   • Management responses
-   • Follow-up clarifications
-   • Unaddressed concerns
-
-3. Market Response:
-   • Stock price impact
-   • Trading volume
-   • Analyst reactions
-   • Market sentiment changes`;
-
-    case 'interview':
-      return basePrompt + `
-
-ADDITIONAL INTERVIEW REQUIREMENTS:
-1. Personal Background:
-   • Career history
-   • Key achievements
-   • Educational background
-   • Personal philosophy
-
-2. Leadership Insights:
-   • Management style
-   • Decision-making approach
-   • Team building strategies
-   • Crisis management experience
-
-3. Industry Perspective:
-   • Market trends analysis
-   • Future predictions
-   • Technology impact
-   • Innovation views`;
-
-    case 'meeting':
-      return basePrompt + `
-
-ADDITIONAL MEETING REQUIREMENTS:
-1. Meeting Dynamics:
-   • Discussion flow
-   • Participation levels
-   • Decision-making process
-   • Conflict resolution
-
-2. Project Updates:
-   • Status reports
-   • Timeline changes
-   • Resource allocation
-   • Risk assessments
-
-3. Team Interaction:
-   • Collaboration points
-   • Task assignments
-   • Communication patterns
-   • Follow-up responsibilities`;
-
-    default:
-      return basePrompt;
-  }
-};
-
 const Home = ({ apiKey }) => {
   const [text, setText] = useState('');
   const [file, setFile] = useState(null);
@@ -287,8 +67,8 @@ const Home = ({ apiKey }) => {
   const readFileAsText = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = (e) => reject(e);
+      reader.onload = (event) => resolve(event.target.result);
+      reader.onerror = () => reject(new Error('Failed to read file'));
       reader.readAsText(file);
     });
   };
@@ -299,19 +79,36 @@ const Home = ({ apiKey }) => {
     setIsLoading(true);
 
     try {
+      // Validate input
+      if (!text.trim() && !file) {
+        throw new Error('Please provide either text or upload a PDF file');
+      }
+
+      // Validate API key
+      if (!apiKey || !apiKey.startsWith('sk-ant-')) {
+        throw new Error('Invalid API key format. Please check your API key.');
+      }
+
       let content = '';
       
       if (file) {
-        content = await readFileAsText(file);
-      } else if (text.trim()) {
-        content = text;
+        try {
+          content = await readFileAsText(file);
+        } catch {
+          throw new Error('Failed to read PDF file. Please try again.');
+        }
       } else {
-        setError('Please provide either text or upload a PDF file');
-        setIsLoading(false);
-        return;
+        content = text.trim();
       }
 
-      const prompt = getPromptForCallType(callType, content);
+      // Validate content length
+      if (content.length < 100) {
+        throw new Error('Content is too short. Please provide more text to summarize.');
+      }
+
+      if (content.length > 100000) {
+        throw new Error('Content is too long. Please provide a shorter text to summarize.');
+      }
 
       const response = await fetch('/api/summarize', {
         method: 'POST',
@@ -320,22 +117,33 @@ const Home = ({ apiKey }) => {
         },
         body: JSON.stringify({
           apiKey,
-          prompt
+          prompt: content
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'Failed to generate summary');
+        throw new Error(errorData.details || errorData.error || 'Failed to generate summary');
       }
 
       const data = await response.json();
+      
+      if (!data.content || !data.content[0] || !data.content[0].text) {
+        throw new Error('Invalid response format from server');
+      }
+
       const summary = data.content[0].text;
+      
+      // Validate summary
+      if (!summary.trim()) {
+        throw new Error('Generated summary is empty. Please try again.');
+      }
+
       localStorage.setItem('summary', summary);
       navigate('/summary');
     } catch (err) {
       console.error('Error:', err);
-      setError(err.message || 'Failed to generate summary');
+      setError(err.message || 'Failed to generate summary. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -354,9 +162,14 @@ const Home = ({ apiKey }) => {
         </h2>
         
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
-            {error}
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg"
+          >
+            <div className="text-red-600 font-medium">Error</div>
+            <div className="text-red-500">{error}</div>
+          </motion.div>
         )}
 
         <div className="mb-6">
@@ -426,7 +239,10 @@ const Home = ({ apiKey }) => {
           className="w-full py-4 px-6 bg-gradient-orange text-white rounded-lg font-semibold flex items-center justify-center space-x-2 hover:opacity-90 transition-opacity disabled:opacity-50"
         >
           {isLoading ? (
-            <span>Processing...</span>
+            <div className="flex items-center space-x-2">
+              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+              <span>Generating Summary...</span>
+            </div>
           ) : (
             <div className="flex items-center space-x-2">
               <span>Generate Summary</span>
