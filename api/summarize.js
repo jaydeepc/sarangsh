@@ -18,7 +18,10 @@ export default async function handler(request) {
 
   // Only allow POST requests
   if (request.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+    return new Response(JSON.stringify({ 
+      error: 'Method not allowed',
+      details: 'Only POST requests are accepted'
+    }), {
       status: 405,
       headers: {
         'Content-Type': 'application/json',
@@ -30,8 +33,12 @@ export default async function handler(request) {
   try {
     const { apiKey, prompt } = await request.json();
 
-    if (!apiKey || !prompt) {
-      return new Response(JSON.stringify({ error: 'Missing required parameters' }), {
+    // Validate required parameters
+    if (!apiKey) {
+      return new Response(JSON.stringify({ 
+        error: 'Missing API key',
+        details: 'Please provide a valid Claude API key'
+      }), {
         status: 400,
         headers: {
           'Content-Type': 'application/json',
@@ -40,6 +47,21 @@ export default async function handler(request) {
       });
     }
 
+    if (!prompt) {
+      return new Response(JSON.stringify({ 
+        error: 'Missing prompt',
+        details: 'Please provide content to summarize'
+      }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
+
+    // Make request to Claude API
+    console.log('Making request to Claude API...');
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -151,11 +173,16 @@ ${prompt}`
       })
     });
 
-    const data = await response.json();
+    console.log('Claude API response status:', response.status);
 
     if (!response.ok) {
-      throw new Error(data.error?.message || 'Failed to generate summary');
+      const errorData = await response.json();
+      console.error('Claude API error:', errorData);
+      throw new Error(errorData.error?.message || 'Failed to generate summary');
     }
+
+    const data = await response.json();
+    console.log('Successfully received Claude API response');
 
     // Process the response to ensure consistent formatting
     let summary = data.content[0].text;
@@ -172,6 +199,8 @@ ${prompt}`
     // Add section breaks
     summary = summary.replace(/(\d+\.\s+[A-Z\s]+)\n/g, '\n$1\n');
 
+    console.log('Successfully formatted summary');
+
     return new Response(JSON.stringify({
       content: [{ text: summary }]
     }), {
@@ -185,7 +214,8 @@ ${prompt}`
     console.error('API Error:', error);
     return new Response(JSON.stringify({ 
       error: 'Failed to process request',
-      details: error.message 
+      details: error.message,
+      timestamp: new Date().toISOString()
     }), {
       status: 500,
       headers: {
