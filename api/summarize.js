@@ -40,18 +40,6 @@ export default async function handler(request) {
       });
     }
 
-    const systemPrompt = `You are a precise and thorough analyst. Your task is to:
-1. Extract ALL information from the provided transcript
-2. Organize it into the exact sections specified
-3. Maintain consistent formatting with proper indentation
-4. Include ALL numbers, quotes, and specific details mentioned
-5. Use bullet points for better readability
-6. Never skip any section, even if information is limited
-7. Clearly attribute quotes to speakers
-8. Format numbers with proper units and comparisons
-9. Highlight year-over-year and quarter-over-quarter changes
-10. Provide context for industry-specific terms`;
-
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -63,11 +51,52 @@ export default async function handler(request) {
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 4096,
         temperature: 0.3,
-        system: systemPrompt,
         messages: [
           {
             role: 'user',
-            content: prompt
+            content: `You are a precise and thorough analyst. Your task is to analyze the following transcript and provide a detailed summary in a clear, structured format. Focus on extracting and organizing ALL important information.
+
+Please ensure your response follows this EXACT structure:
+
+1. EXECUTIVE OVERVIEW
+   - Event Details (date, time, type, duration)
+   - Key Participants (names and titles)
+   - Main Announcements (3-4 most significant points)
+
+2. KEY HIGHLIGHTS
+   - Financial Metrics (all numbers with comparisons)
+   - Operational Updates (key changes and achievements)
+   - Strategic Decisions (major choices and plans)
+
+3. CRITICAL ANALYSIS
+   - Performance Assessment
+   - Market Position
+   - Competitive Analysis
+   - Risk Factors
+
+4. FORWARD-LOOKING INSIGHTS
+   - Growth Plans
+   - Strategic Initiatives
+   - Market Expansion
+   - Product Roadmap
+
+5. ACTION ITEMS
+   - Immediate Next Steps
+   - Follow-up Tasks
+   - Timeline and Deadlines
+   - Responsibility Assignments
+
+IMPORTANT:
+- Include ALL numerical data mentioned
+- Quote speakers directly for important statements
+- Maintain consistent formatting
+- Provide context for industry terms
+- Don't skip any sections
+- Use bullet points for clarity
+
+Here's the transcript to analyze:
+
+${prompt}`
           }
         ]
       })
