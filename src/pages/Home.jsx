@@ -4,6 +4,10 @@ import { motion } from 'framer-motion';
 import { FiUpload, FiArrowRight, FiX } from 'react-icons/fi';
 import PropTypes from 'prop-types';
 import { config } from '../config';
+import * as pdfjsLib from 'pdfjs-dist';
+import 'pdfjs-dist/build/pdf.worker.entry';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 const Home = ({ apiKey }) => {
   const [text, setText] = useState('');
@@ -65,13 +69,27 @@ const Home = ({ apiKey }) => {
     setError('');
   };
 
-  const readFileAsText = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (event) => resolve(event.target.result);
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsText(file);
-    });
+  const readPdfFile = async (file) => {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = '';
+      
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map(item => item.str)
+          .join(' ')
+          .replace(/\s+/g, ' ');
+        fullText += pageText + '\n\n';
+      }
+      
+      return fullText.trim();
+    } catch (error) {
+      console.error('Error reading PDF:', error);
+      throw new Error('Failed to read PDF file. Please try again.');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -88,9 +106,12 @@ const Home = ({ apiKey }) => {
       
       if (file) {
         try {
-          content = await readFileAsText(file);
-        } catch {
-          throw new Error('Failed to read PDF file');
+          content = await readPdfFile(file);
+          if (!content.trim()) {
+            throw new Error('Could not extract text from PDF. Please try copying and pasting the text directly.');
+          }
+        } catch (error) {
+          throw new Error('Failed to read PDF file. Please try copying and pasting the text directly.');
         }
       } else {
         content = text.trim();
