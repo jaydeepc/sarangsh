@@ -62,8 +62,10 @@ const Summary = () => {
             if (!titleMatch) return null;
 
             const [, title, content] = titleMatch;
+            
+            // Split content into overview and bullet points
             const parts = content.split('\n-');
-            const mainText = parts[0].trim();
+            const overview = parts[0].trim();
             const bullets = parts.slice(1).map(point => point.trim()).filter(Boolean);
 
             return (
@@ -79,11 +81,15 @@ const Summary = () => {
                   <h2 className="text-2xl font-bold bg-gradient-sarangsh text-transparent bg-clip-text mb-6">
                     {title.trim()}
                   </h2>
-                  {mainText && (
-                    <p className="text-gray-700 mb-4 leading-relaxed">
-                      {mainText}
+                  
+                  {/* Section Overview */}
+                  {overview && (
+                    <p className="text-gray-700 mb-6 leading-relaxed border-l-4 border-sarangsh/20 pl-4 italic">
+                      {overview}
                     </p>
                   )}
+                  
+                  {/* Bullet Points */}
                   {bullets.length > 0 && (
                     <ul className="space-y-4">
                       {bullets.map((point, i) => (
