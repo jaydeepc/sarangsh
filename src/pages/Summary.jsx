@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiDownload } from 'react-icons/fi';
-import jsPDF from 'jspdf';
 
 const Summary = () => {
   const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [pdfGenerating, setPdfGenerating] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -111,8 +111,10 @@ const Summary = () => {
     });
   };
 
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
     try {
+      setPdfGenerating(true);
+      const { default: jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       
       // Add title
@@ -186,6 +188,8 @@ const Summary = () => {
     } catch (err) {
       console.error('Error generating PDF:', err);
       setError('Failed to generate PDF');
+    } finally {
+      setPdfGenerating(false);
     }
   };
 
@@ -229,10 +233,20 @@ const Summary = () => {
         </Link>
         <button
           onClick={downloadPDF}
-          className="flex items-center px-4 py-2 bg-gradient-orange text-white rounded-lg hover:opacity-90 transition-opacity"
+          disabled={pdfGenerating}
+          className="flex items-center px-4 py-2 bg-gradient-orange text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
         >
-          <FiDownload className="mr-2" />
-          Download PDF
+          {pdfGenerating ? (
+            <div className="flex items-center space-x-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+              <span>Generating PDF...</span>
+            </div>
+          ) : (
+            <>
+              <FiDownload className="mr-2" />
+              Download PDF
+            </>
+          )}
         </button>
       </div>
 
