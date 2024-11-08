@@ -40,8 +40,7 @@ export default async function handler(request) {
       });
     }
 
-    // Add system message to enforce structured output
-    const systemMessage = `You are a precise and thorough analyst. Your task is to:
+    const systemPrompt = `You are a precise and thorough analyst. Your task is to:
 1. Extract ALL information from the provided transcript
 2. Organize it into the exact sections specified
 3. Maintain consistent formatting with proper indentation
@@ -63,19 +62,14 @@ export default async function handler(request) {
       body: JSON.stringify({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 4096,
+        temperature: 0.3,
+        system: systemPrompt,
         messages: [
-          {
-            role: 'system',
-            content: systemMessage
-          },
           {
             role: 'user',
             content: prompt
           }
-        ],
-        temperature: 0.3, // Lower temperature for more consistent output
-        top_p: 0.9,
-        top_k: 50
+        ]
       })
     });
 
