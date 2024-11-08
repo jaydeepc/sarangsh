@@ -5,9 +5,10 @@ import { FiUpload, FiArrowRight } from 'react-icons/fi';
 import PropTypes from 'prop-types';
 import { config } from '../config';
 import * as pdfjsLib from 'pdfjs-dist';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.entry';
 
 // Configure worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 const Home = ({ apiKey }) => {
   const [text, setText] = useState('');

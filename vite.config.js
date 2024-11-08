@@ -130,13 +130,13 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          pdfjsLib: ['pdfjs-dist']
+          pdfjsLib: ['pdfjs-dist', 'pdfjs-dist/build/pdf.worker.entry']
         }
       }
     }
   },
   optimizeDeps: {
-    include: ['pdfjs-dist']
+    include: ['pdfjs-dist', 'pdfjs-dist/build/pdf.worker.entry']
   },
   server: {
     port: 5173,
